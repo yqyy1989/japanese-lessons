@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>漫画日语课</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout idea: one manga page per day. Ink-bordered panels on dotted screentone paper;
+     the teacher's red pen marks what is done and what is right. Single light theme by choice. */
+  --paper:#eceef5;
+  --sheet:#ffffff;
+  --ink:#16151c;
+  --ink-soft:#57566b;
+  --tone:#c6c9d9;
+  --red:#e23b2e;
+  --hi:#ffe14d;
+  --font-display:"ZCOOL KuaiLe","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  --font-body:"Noto Sans SC","PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif;
+  --font-kana:"Klee One","YuKyokasho","Yu Kyokasho","Hiragino Maru Gothic ProN","Yu Gothic","Meiryo","Noto Sans JP",serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.65;
+  background-color:var(--paper);
+  background-image:radial-gradient(var(--tone) 1px,transparent 1.5px);
+  background-size:13px 13px;
+}
+h1,h2,h3{font-family:var(--font-display);font-weight:400;line-height:1.25;margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,6vw,40px)}
+h2{font-size:22px}
+h3{font-size:18px}
+p{margin:0}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.ja{font-family:var(--font-kana);font-weight:600}
+:focus-visible{outline:3px dashed var(--ink);outline-offset:3px}
+
+/* ---------- top bar ---------- */
+.top{position:sticky;top:0;z-index:20;background:var(--sheet);border-bottom:2.5px solid var(--ink)}
+.top-in{max-width:860px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+.brand{display:flex;flex-direction:column;text-decoration:none;line-height:1.1}
+.brand-jp{font-size:12px;letter-spacing:.18em;color:var(--red)}
+.brand-zh{font-family:var(--font-display);font-size:24px}
+.nav{display:flex;gap:8px}
+.nav a{text-decoration:none;font-weight:700;font-size:14px;padding:6px 12px;border:2px solid var(--ink);border-radius:3px;background:var(--sheet)}
+.nav a[aria-current="page"]{background:var(--ink);color:#fff}
+
+main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
+.stack{display:flex;flex-direction:column;gap:22px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.spread{justify-content:space-between}
+.muted{color:var(--ink-soft)}
+.small{font-size:14px}
+
+/* ---------- panels ---------- */
+.panel{background:var(--sheet);border:2.5px solid var(--ink);border-radius:3px;padding:20px;display:flex;flex-direction:column;gap:14px;scroll-margin-top:84px}
+.panel.pop{box-shadow:6px 6px 0 var(--ink)}
+.tab{display:inline-block;align-self:flex-start;background:var(--ink);color:#fff;font-family:var(--font-display);font-size:15px;letter-spacing:.06em;padding:2px 12px;border-radius:2px}
+.tab.hi{background:var(--hi);color:var(--ink);border:2px solid var(--ink)}
+.chip{display:inline-block;font-size:13px;font-weight:700;padding:1px 9px;border:2px solid var(--ink);border-radius:999px;background:var(--sheet);white-space:nowrap}
+.chip.kind-new{background:var(--hi)}
+.chip.kind-manga{background:var(--red);color:#fff}
+.chip.kind-class,.chip.kind-check{background:var(--ink);color:#fff}
+.meta{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:14px;font-weight:500}
+.sub{font-size:17px;color:var(--ink-soft);max-width:62ch}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;text-decoration:none;cursor:pointer;
+  border:2.5px solid var(--ink);background:var(--sheet);padding:9px 16px;border-radius:3px;box-shadow:3px 3px 0 var(--ink);transition:transform .06s,box-shadow .06s}
+.btn:active{transform:translate(3px,3px);box-shadow:none}
+.btn.primary{background:var(--red);color:#fff}
+.btn.hi{background:var(--hi)}
+.btn.sm{padding:5px 11px;font-size:14px;box-shadow:2px 2px 0 var(--ink)}
+.btn.on{background:var(--ink);color:#fff}
+.btn[disabled]{opacity:.45;cursor:default;box-shadow:none}
+.btn.say{display:none;width:38px;height:38px;padding:0;border-radius:50%;flex:none}
+.has-voice .btn.say{display:inline-flex}
+.say svg{width:18px;height:18px}
+
+/* ---------- home ---------- */
+.hero{position:relative;padding:24px}
+.hero h1{max-width:16em}
+.stamp{flex:none;transform:rotate(-9deg)}
+.stamp-wrap{display:flex;align-items:center;gap:10px;color:var(--red);font-family:var(--font-display);font-size:18px}
+.hero .stamp-wrap{position:absolute;right:18px;top:14px}
+.strip{display:grid;grid-template-columns:repeat(14,1fr);gap:5px}
+.cell{aspect-ratio:1/1;border:2px solid var(--ink);border-radius:2px;background:var(--sheet);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;text-decoration:none;font-variant-numeric:tabular-nums}
+.cell.none{border-style:dashed;border-color:var(--tone);color:var(--tone)}
+.cell.done{background:var(--red);color:#fff}
+.cell.today{box-shadow:0 0 0 3px var(--hi)}
+.big-num{font-family:var(--font-display);font-size:44px;line-height:1;color:var(--red)}
+.list{display:flex;flex-direction:column}
+.item{display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:center;padding:12px 4px;border-top:2px dashed var(--tone);text-decoration:none}
+.item:first-child{border-top:0}
+.item:hover .item-title{text-decoration:underline}
+.item-day{font-family:var(--font-display);font-size:20px;min-width:3.2em}
+.item-title{font-weight:700}
+.item-end{display:flex;align-items:center;gap:8px;color:var(--red);font-weight:700;font-size:14px}
+
+/* ---------- lesson ---------- */
+.bubble{position:relative;background:var(--sheet);border:2.5px solid var(--ink);border-radius:22px;padding:16px 20px;margin-left:8px;max-width:64ch}
+.bubble::before{content:"";position:absolute;left:28px;bottom:-14px;width:22px;height:22px;background:var(--sheet);border-right:2.5px solid var(--ink);border-bottom:2.5px solid var(--ink);transform:rotate(45deg) skew(12deg,12deg)}
+.who{position:absolute;top:-13px;left:18px;background:var(--red);color:#fff;font-size:13px;padding:0 10px;border-radius:999px;border:2px solid var(--ink)}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;counter-reset:st}
+.step{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:start;padding-top:12px;border-top:2px dashed var(--tone)}
+.step:first-child{border-top:0;padding-top:0}
+.step input{width:24px;height:24px;margin:3px 0 0;accent-color:var(--red)}
+.step-title{font-weight:700;font-size:17px}
+.step.done .step-title{text-decoration:line-through;text-decoration-color:var(--red);text-decoration-thickness:2px}
+.step-body{display:flex;flex-direction:column;gap:8px}
+
+.kana-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.kana-card{border:2.5px solid var(--ink);border-radius:3px;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--sheet)}
+.kana-top{display:flex;align-items:center;gap:12px}
+.glyph{font-size:64px;line-height:1}
+.romaji{font-size:24px;font-weight:700;letter-spacing:.04em}
+.writer{width:172px;height:172px;align-self:center;border:2px solid var(--ink);border-radius:2px;touch-action:none;
+  background:
+    linear-gradient(var(--tone),var(--tone)) 50% 0/1px 100% no-repeat,
+    linear-gradient(var(--tone),var(--tone)) 0 50%/100% 1px no-repeat,var(--sheet)}
+.writer svg{display:block;touch-action:none}
+.writer.plain{display:flex;align-items:center;justify-content:center;font-size:96px}
+.note b{display:inline-block;font-size:12px;background:var(--hi);border:1.5px solid var(--ink);border-radius:2px;padding:0 6px;margin-right:6px;font-weight:700}
+.trace-ok{color:var(--red);font-weight:700;font-size:14px;min-height:1.4em}
+
+.word{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:center;padding:10px 0;border-top:2px dashed var(--tone)}
+.word:first-child{border-top:0}
+.word-jp{font-size:28px;line-height:1.2}
+.word-main{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.word-ro{font-weight:700;color:var(--red)}
+
+.pad-wrap{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.pad{position:relative;width:min(100%,440px);aspect-ratio:1/1;border:2.5px solid var(--ink);border-radius:2px;background:var(--sheet)}
+.pad canvas{position:absolute;inset:0;width:100%;height:100%}
+.pad-draw{touch-action:none;cursor:crosshair}
+.swatch{width:14px;height:14px;border-radius:50%;border:1.5px solid currentColor;display:inline-block}
+
+.linkrow{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:2px dashed var(--tone);text-decoration:none}
+.linkrow:first-child{border-top:0}
+.linkrow:hover .item-title{text-decoration:underline}
+.linkrow svg{flex:none;width:20px;height:20px;margin-top:3px}
+
+.q{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:2px dashed var(--tone)}
+.q:first-of-type{border-top:0;padding-top:0}
+.q-text{font-weight:700;font-size:17px}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.opt{font-size:17px;min-height:48px}
+.opt.kana{font-size:30px}
+.opt.right{background:var(--sheet);box-shadow:none;border-color:var(--red);color:var(--red)}
+.opt.wrong{background:var(--paper);box-shadow:none;color:var(--ink-soft);text-decoration:line-through}
+.verdict{font-weight:700}
+.verdict .mark{display:inline-block;font-size:22px;color:var(--red);margin-right:6px;font-family:var(--font-kana)}
+.score{font-family:var(--font-display);font-size:22px}
+
+.parent{background:var(--hi)}
+.done-row{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.yoku{font-size:22px;color:var(--red)}
+.pager{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* ---------- review ---------- */
+.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.kcell{display:flex;flex-direction:column;align-items:center;gap:0;padding:6px 2px;border:2px solid var(--ink);border-radius:3px;background:var(--sheet);cursor:pointer}
+.kcell .ja{font-size:30px;line-height:1.2}
+.kcell .ro{font-size:13px;font-weight:700;color:var(--red);min-height:1.5em}
+.hide-ro .kcell:not(.shown) .ro{visibility:hidden}
+.flash{align-self:center;width:min(100%,320px);aspect-ratio:1/1;border:2.5px solid var(--ink);border-radius:3px;box-shadow:6px 6px 0 var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--sheet)}
+.flash .ja{font-size:150px;line-height:1}
+.flash .ro{font-size:28px;font-weight:700;color:var(--red);min-height:1.5em}
+.clock{font-variant-numeric:tabular-nums;font-weight:700}
+
+/* ---------- timer + footer ---------- */
+.timerbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;background:var(--hi);border:2.5px solid var(--ink);border-radius:999px;box-shadow:3px 3px 0 var(--ink);padding:6px 8px 6px 18px;display:flex;align-items:center;gap:12px;font-weight:700;font-variant-numeric:tabular-nums;max-width:calc(100% - 32px)}
+.timerbar[hidden]{display:none}
+.foot{max-width:860px;margin:0 auto;padding:0 16px 40px;font-size:12px;color:var(--ink-soft)}
+@keyframes stampin{from{transform:rotate(-9deg) scale(1.6);opacity:0}to{transform:rotate(-9deg) scale(1);opacity:1}}
+.stamp.fresh{animation:stampin .28s ease-out}
+@media (max-width:520px){
+  .panel{padding:16px}
+  .hero .stamp-wrap{position:static}
+  .strip{grid-template-columns:repeat(7,1fr)}
+  .item{grid-template-columns:auto 1fr}
+  .item-end{grid-column:2}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="#home">
+      <span class="brand-jp ja" lang="ja">まいにち にほんご</span>
+      <span class="brand-zh">漫画日语课</span>
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <a href="#home" data-nav="home">今天</a>
+      <a href="#all" data-nav="all">全部课程</a>
+      <a href="#review" data-nav="review">复习</a>
+    </nav>
+  </div>
+</header>
+
+<main id="app" tabindex="-1"><p class="muted">正在翻开课本…</p></main>
+
+<div class="timerbar" id="timerbar" hidden role="status">
+  <span id="timerlabel"></span>
+  <button class="btn sm" id="timerstop" type="button">结束计时</button>
+</div>
+
+<footer class="foot">
+  <p>笔顺数据来自 AnimCJK（Arphic Public License），笔顺动画使用 Hanzi Writer（MIT）。画板里的画只保存在这台设备上。</p>
+</footer>
+
+<script src="vendor/hanzi-writer.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var TZ = 'America/Vancouver';
+  var INK = '#16151c', RED = '#e23b2e', TONE = '#c6c9d9';
+  var app = document.getElementById('app');
+  var KIND = { 'new': '新内容', manga: '漫画日', light: '轻松日', 'class': '上课日', check: '过关检查' };
+
+  /* ---------- small helpers ---------- */
+  function h(tag, props) {
+    var el = document.createElement(tag);
+    if (props) {
+      Object.keys(props).forEach(function (k) {
+        var v = props[k];
+        if (v == null || v === false) return;
+        if (k === 'class') el.className = v;
+        else if (k === 'text') el.textContent = v;
+        else if (k === 'on') Object.keys(v).forEach(function (ev) { el.addEventListener(ev, v[ev]); });
+        else el.setAttribute(k, v === true ? '' : v);
+      });
+    }
+    for (var i = 2; i < arguments.length; i++) add(el, arguments[i]);
+    return el;
+  }
+  function add(el, c) {
+    if (c == null || c === false) return;
+    if (Array.isArray(c)) { c.forEach(function (x) { add(el, x); }); return; }
+    el.appendChild(c.nodeType ? c : document.createTextNode(String(c)));
+  }
+  function ja(text, cls, tag) {
+    return h(tag || 'span', { 'class': 'ja' + (cls ? ' ' + cls : ''), lang: 'ja', text: text });
+  }
+  function svg(markup, cls) {
+    var s = document.createElement('span');
+    s.innerHTML = markup; /* static markup written in this file only */
+    var n = s.firstChild;
+    if (cls) n.setAttribute('class', cls);
+    return n;
+  }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function dparts(s) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? { y: +m[1], m: +m[2], d: +m[3] } : null; }
+  function addDays(s, n) { var p = dparts(s); return new Date(Date.UTC(p.y, p.m - 1, p.d + n)).toISOString().slice(0, 10); }
+  var WD = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  function weekday(s) { var p = dparts(s); return WD[new Date(Date.UTC(p.y, p.m - 1, p.d)).getUTCDay()]; }
+  function niceDate(s) { var p = dparts(s); return p.m + '月' + p.d + '日'; }
+  function todayStr() {
+    try {
+      var parts = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+      var o = {}; parts.forEach(function (p) { o[p.type] = p.value; });
+      if (o.year && o.month && o.day) return o.year + '-' + o.month + '-' + o.day;
+    } catch (e) {}
+    var d = new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+  function clock(sec) { sec = Math.max(0, Math.round(sec)); return pad2(Math.floor(sec / 60)) + ':' + pad2(sec % 60); }
+  function chars(s) { return Array.from(String(s || '')); }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function cap(name) {
+    try {
+      if (window.claude && typeof window.claude.use === 'function') {
+        return Promise.resolve(window.claude.use(name)).catch(function () { return null; });
+      }
+    } catch (e) {}
+    return Promise.resolve(null);
+  }
+  function currentRoute() { return (location.hash || '').replace(/^#/, '') || 'home'; }
+
+  var ICON_SAY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M17 8.5a5 5 0 0 1 0 7"/><path d="M19.8 5.5a9 9 0 0 1 0 13"/></svg>';
+  var ICON_OUT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>';
+
+  /* hanamaru: the flower-circle a Japanese teacher draws on good work */
+  function hanamaru(size, fresh) {
+    var pts = [], i, a, r;
+    for (i = 0; i <= 150; i++) { a = i / 150 * Math.PI * 2 * 2.6 - Math.PI / 2; r = 2 + i / 150 * 19; pts.push((50 + r * Math.cos(a)).toFixed(1) + ',' + (50 + r * Math.sin(a)).toFixed(1)); }
+    var petals = '', n = 8;
+    for (i = 0; i < n; i++) {
+      var a0 = i / n * Math.PI * 2 - 1.2, a1 = (i + 1) / n * Math.PI * 2 - 1.2;
+      var x0 = 50 + 26 * Math.cos(a0), y0 = 50 + 26 * Math.sin(a0), x1 = 50 + 26 * Math.cos(a1), y1 = 50 + 26 * Math.sin(a1);
+      petals += (i === 0 ? 'M' + x0.toFixed(1) + ',' + y0.toFixed(1) : '') + ' A12,12 0 1 1 ' + x1.toFixed(1) + ',' + y1.toFixed(1);
+    }
+    var m = '<svg viewBox="0 0 100 100" width="' + size + '" height="' + size + '" fill="none" stroke="' + RED + '" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="完成"><polyline points="' + pts.join(' ') + '"/><path d="' + petals + '"/></svg>';
+    return svg(m, 'stamp' + (fresh ? ' fresh' : ''));
+  }
+
+  /* ---------- voice: device Japanese voice first, Claude voice as backup ---------- */
+  var Voice = (function () {
+    var synth = null; try { synth = window.speechSynthesis || null; } catch (e) {}
+    var nativeVoice = null, claudeTts = null;
+    function available() { return !!(nativeVoice || claudeTts); }
+    function notify() { document.documentElement.classList.toggle('has-voice', available()); }
+    function pick() {
+      if (!synth) return;
+      try {
+        var vs = (synth.getVoices() || []).filter(function (v) { return /^ja([-_]|$)/i.test(v.lang || ''); });
+        nativeVoice = vs.filter(function (v) { return v.localService; })[0] || vs[0] || null;
+      } catch (e) { nativeVoice = null; }
+      notify();
+    }
+    if (synth) {
+      pick();
+      try { synth.addEventListener('voiceschanged', pick); } catch (e) { try { synth.onvoiceschanged = pick; } catch (e2) {} }
+    }
+    cap('tts').then(function (t) { claudeTts = t || null; notify(); });
+    function viaClaude(text) {
+      if (!claudeTts) return;
+      try {
+        Promise.resolve(claudeTts.speak(text, { language: 'ja', rate: 0.85 })).catch(function (e) {
+          if (e && e.code === 'not_granted') { claudeTts = null; notify(); }
+        });
+      } catch (e) {}
+    }
+    function speak(text) {
+      if (!text) return;
+      if (nativeVoice && synth) {
+        try {
+          synth.cancel();
+          var u = new SpeechSynthesisUtterance(text);
+          u.voice = nativeVoice; u.lang = nativeVoice.lang || 'ja-JP'; u.rate = 0.8;
+          var started = false, settled = false;
+          u.onstart = function () { started = true; };
+          u.onend = function () { settled = true; };
+          u.onerror = function (ev) {
+            var code = ev && ev.error;
+            if (started || settled || code === 'interrupted' || code === 'canceled') return;
+            settled = true;
+            if (claudeTts) { nativeVoice = null; notify(); viaClaude(text); }
+          };
+          synth.speak(u);
+          setTimeout(function () {
+            if (started || settled || !claudeTts) return;
+            settled = true; try { synth.cancel(); } catch (e) {}
+            nativeVoice = null; notify(); viaClaude(text);
+          }, 3000);
+          return;
+        } catch (e) {}
+      }
+      viaClaude(text);
+    }
+    return { speak: speak };
+  })();
+  function sayBtn(text, label) {
+    var b = h('button', { 'class': 'btn sm say', type: 'button', 'aria-label': label || ('听 ' + text + ' 的发音'), on: { click: function () { Voice.speak(text); } } });
+    b.appendChild(svg(ICON_SAY));
+    return b;
+  }
+
+  /* ---------- progress: kept on this device, and in the page's database when one is granted ---------- */
+  var Store = (function () {
+    var KEY = 'mnk.progress.v1', cache = {}, db = null, timers = {}, writing = {}, dirty = {}, subs = [];
+    try { cache = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { cache = {}; }
+    function saveLocal() { try { localStorage.setItem(KEY, JSON.stringify(cache)); } catch (e) {} }
+    function emit() { subs.slice().forEach(function (f) { try { f(); } catch (e) {} }); }
+    function onChange(f) { subs.push(f); return function () { subs = subs.filter(function (x) { return x !== f; }); }; }
+    function get(id) { return cache[id] || {}; }
+    function all() { return cache; }
+    function flush(id) {
+      if (!db || !cache[id]) return;
+      if (writing[id]) { dirty[id] = true; return; }
+      writing[id] = true;
+      var p;
+      try { p = db.doc('progress/' + id).set(JSON.parse(JSON.stringify(cache[id]))); } catch (e) { writing[id] = false; return; }
+      Promise.resolve(p).catch(function () {}).then(function () {
+        writing[id] = false;
+        if (dirty[id]) { dirty[id] = false; flush(id); }
+      });
+    }
+    function schedule(id) { if (!db) return; clearTimeout(timers[id]); timers[id] = setTimeout(function () { flush(id); }, 900); }
+    function patch(id, part, quiet) {
+      var cur = Object.assign({}, cache[id] || {}, part);
+      cur.date = id; cur.updatedAt = new Date().toISOString();
+      cache[id] = cur; saveLocal(); schedule(id);
+      if (!quiet) emit();
+    }
+    function saveCheck(rec) {
+      try {
+        var list = JSON.parse(localStorage.getItem('mnk.checks.v1') || '[]'); list.push(rec);
+        localStorage.setItem('mnk.checks.v1', JSON.stringify(list.slice(-20)));
+      } catch (e) {}
+      if (!db) return;
+      try { Promise.resolve(db.doc('checks/' + rec.id).set(rec)).catch(function () {}); } catch (e) {}
+    }
+    cap('db').then(function (d) {
+      if (!d) return;
+      db = d;
+      var q; try { q = d.collection('progress').get(); } catch (e) { return; }
+      Promise.resolve(q).then(function (snap) {
+        var docs = (snap && snap.docs) || [], seen = {}, changed = false;
+        docs.forEach(function (doc) {
+          var data = doc && doc.data ? doc.data() : null; if (!data) return;
+          seen[doc.id] = true;
+          var loc = cache[doc.id];
+          if (!loc || String(data.updatedAt || '') > String(loc.updatedAt || '')) { cache[doc.id] = JSON.parse(JSON.stringify(data)); changed = true; }
+          else if (String(loc.updatedAt || '') > String(data.updatedAt || '')) schedule(doc.id);
+        });
+        Object.keys(cache).forEach(function (id) { if (dparts(id) && !seen[id]) schedule(id); });
+        if (changed) { saveLocal(); emit(); }
+      }).catch(function () {});
+    });
+    return { get: get, all: all, patch: patch, onChange: onChange, saveCheck: saveCheck };
+  })();
+
+  /* ---------- data ---------- */
+  var Data = { manifest: null, loadedAt: 0, lessons: {}, strokes: null, strokesP: null };
+  function getJSON(path) {
+    return fetch(path, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(path + ' ' + r.status); return r.json(); });
+  }
+  function loadManifest() {
+    return getJSON('lessons/index.json').then(function (m) {
+      m = m || {};
+      var seen = {};
+      m.lessons = (Array.isArray(m.lessons) ? m.lessons : []).filter(function (x) {
+        if (!x || !dparts(x.date) || seen[x.date]) return false; seen[x.date] = true; return true;
+      }).sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+      Data.manifest = m; Data.loadedAt = Date.now();
+      return m;
+    });
+  }
+  function loadLesson(date) {
+    if (Data.lessons[date]) return Promise.resolve(Data.lessons[date]);
+    return getJSON('lessons/' + date + '.json').then(function (l) { Data.lessons[date] = l; return l; });
+  }
+  function loadStrokes() {
+    if (!Data.strokesP) {
+      Data.strokesP = getJSON('data/kana-strokes.json').then(function (arr) {
+        var map = {}; (arr || []).forEach(function (r) { map[r.c] = { strokes: r.s, medians: r.m }; });
+        Data.strokes = map; return map;
+      }).catch(function () { Data.strokes = {}; return {}; });
+    }
+    return Data.strokesP;
+  }
+  function byDate() { var o = {}; Data.manifest.lessons.forEach(function (l) { o[l.date] = l; }); return o; }
+
+  /* ---------- step timer ---------- */
+  var Timer = (function () {
+    var bar = document.getElementById('timerbar'), lab = document.getElementById('timerlabel');
+    var tm = null, end = 0, ctx = null, label = '';
+    function beep() {
+      if (!ctx) return;
+      try {
+        [0, 0.35, 0.7].forEach(function (dt) {
+          var o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime + dt;
+          o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.2, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+          o.start(t); o.stop(t + 0.3);
+        });
+      } catch (e) {}
+    }
+    function tick() {
+      var left = end - Date.now();
+      if (left <= 0) { clearInterval(tm); tm = null; lab.textContent = label + ' · 时间到！'; beep(); return; }
+      lab.textContent = label + ' · ' + clock(left / 1000);
+    }
+    function stop() { clearInterval(tm); tm = null; bar.hidden = true; }
+    function start(name, minutes) {
+      stop();
+      try { var AC = window.AudioContext || window.webkitAudioContext; if (AC) { ctx = ctx || new AC(); if (ctx.state === 'suspended') ctx.resume(); } } catch (e) { ctx = null; }
+      label = name; end = Date.now() + minutes * 60000; bar.hidden = false; tick(); tm = setInterval(tick, 500);
+    }
+    document.getElementById('timerstop').addEventListener('click', stop);
+    return { start: start };
+  })();
+
+  /* ---------- shared pieces ---------- */
+  function kindChip(kind) { return KIND[kind] ? h('span', { 'class': 'chip kind-' + kind, text: KIND[kind] }) : null; }
+  function lessonMeta(l, withToday) {
+    var today = todayStr();
+    return h('div', { 'class': 'meta' },
+      h('span', { 'class': 'tab', text: (withToday && l.date === today ? '今天 · ' : '') + '第 ' + (l.day || '?') + ' 天' }),
+      h('span', { text: niceDate(l.date) + ' ' + (l.weekday || weekday(l.date)) }),
+      kindChip(l.kind),
+      l.minutes ? h('span', { text: l.minutes + ' 分钟' }) : null);
+  }
+  function errorPanel(msg, href, label) {
+    return h('section', { 'class': 'panel' }, h('h2', { text: msg }), href ? h('a', { 'class': 'btn', href: href, text: label }) : null);
+  }
+  function lessonRow(l) {
+    var p = Store.get(l.date);
+    var end = h('span', { 'class': 'item-end' });
+    if (p.quiz && p.quiz.total) end.appendChild(h('span', { text: '小测 ' + p.quiz.score + '/' + p.quiz.total }));
+    if (p.done) end.appendChild(hanamaru(30));
+    return h('a', { 'class': 'item', href: '#d-' + l.date },
+      h('span', { 'class': 'item-day', text: '第' + (l.day || '?') + '天' }),
+      h('span', {},
+        h('span', { 'class': 'item-title', text: l.title || niceDate(l.date) }), ' ',
+        h('span', { 'class': 'muted small', text: niceDate(l.date) + ' ' + (l.weekday || weekday(l.date)) + (KIND[l.kind] ? ' · ' + KIND[l.kind] : '') })),
+      end);
+  }
+
+  /* ---------- home ---------- */
+  function streak(today, map) {
+    var n = 0, d = today, guard = 0;
+    while (guard++ < 400) {
+      var p = Store.get(d), l = map[d];
+      if (p.done) n++;
+      else if (d === today || (l && l.kind === 'light')) { /* does not break the run */ }
+      else break;
+      d = addDays(d, -1);
+      if (Data.manifest.lessons.length && d < Data.manifest.lessons[0].date) break;
+    }
+    return n;
+  }
+  function viewHome() {
+    var today = todayStr(), ls = Data.manifest.lessons, map = byDate();
+    var cur = map[today], latest = ls[ls.length - 1];
+    var wrap = h('div', { 'class': 'stack' });
+
+    function hero(l, isToday) {
+      var p = Store.get(l.date);
+      var card = h('article', { 'class': 'panel pop hero' }, lessonMeta(l, true), h('h1', { text: l.title || '今天的任务' }));
+      if (l.subtitle) card.appendChild(h('p', { 'class': 'sub', text: l.subtitle }));
+      card.appendChild(h('div', { 'class': 'row' },
+        h('a', { 'class': 'btn primary', href: '#d-' + l.date, text: p.done ? '再看一遍' : (isToday ? '开始今天的任务' : '打开这一课') })));
+      if (p.done) card.appendChild(h('div', { 'class': 'stamp-wrap' }, hanamaru(64), ja('よくできました')));
+      return card;
+    }
+    if (cur) wrap.appendChild(hero(cur, true));
+    else {
+      wrap.appendChild(h('section', { 'class': 'panel' },
+        h('span', { 'class': 'tab', text: niceDate(today) + ' ' + weekday(today) }),
+        h('h2', { text: ls.length ? '今天的任务还在路上' : '第一课正在准备' }),
+        h('p', { 'class': 'muted', text: '每天下午 3 点前，老师会把当天的任务放到这里。到时候刷新一下就能看到。' })));
+      if (latest) wrap.appendChild(hero(latest, false));
+    }
+
+    if (ls.length) {
+      var strip = h('div', { 'class': 'strip', role: 'list' });
+      for (var i = 13; i >= 0; i--) {
+        var d = addDays(today, -i), l = map[d], p = Store.get(d);
+        var cls = 'cell' + (p.done ? ' done' : (l ? '' : ' none')) + (d === today ? ' today' : '');
+        var label = niceDate(d) + (p.done ? ' 已完成' : (l ? ' 未完成' : ' 没有课程'));
+        strip.appendChild(l ? h('a', { 'class': cls, href: '#d-' + d, role: 'listitem', 'aria-label': label, text: dparts(d).d })
+                            : h('span', { 'class': cls, role: 'listitem', 'aria-label': label, text: dparts(d).d }));
+      }
+      wrap.appendChild(h('section', { 'class': 'panel' },
+        h('div', { 'class': 'row spread' },
+          h('div', {}, h('span', { 'class': 'tab', text: '最近 14 天' })),
+          h('div', { 'class': 'row' }, h('span', { 'class': 'big-num', text: String(streak(today, map)) }), h('span', { text: '天连续完成' }))),
+        strip,
+        h('p', { 'class': 'muted small', text: '红色是已经完成的日子，点一下可以回到那一天。' })));
+
+      var list = h('div', { 'class': 'list' });
+      ls.slice(-6).reverse().forEach(function (l2) { list.appendChild(lessonRow(l2)); });
+      wrap.appendChild(h('section', { 'class': 'panel' },
+        h('div', { 'class': 'row spread' }, h('span', { 'class': 'tab', text: '最近的课' }), h('a', { 'class': 'btn sm', href: '#all', text: '全部 ' + ls.length + ' 课' })),
+        list));
+      wrap.appendChild(h('section', { 'class': 'panel' },
+        h('span', { 'class': 'tab hi', text: '复习' }),
+        h('p', { text: '学过的假名和单词都收在复习页里，可以点读，也可以打乱抽查。' }),
+        h('div', { 'class': 'row' }, h('a', { 'class': 'btn hi', href: '#review', text: '去复习' }))));
+    }
+    app.appendChild(wrap);
+  }
+
+  /* ---------- all lessons ---------- */
+  function viewAll() {
+    var ls = Data.manifest.lessons.slice().reverse();
+    var wrap = h('div', { 'class': 'stack' }, h('h1', { text: '全部课程' }));
+    if (!ls.length) wrap.appendChild(h('p', { 'class': 'muted', text: '还没有课程。第一课放上来以后会出现在这里。' }));
+    var month = '', list = null;
+    ls.forEach(function (l) {
+      var p = dparts(l.date), key = p.y + '年' + p.m + '月';
+      if (key !== month) {
+        month = key; list = h('div', { 'class': 'list' });
+        wrap.appendChild(h('section', { 'class': 'panel' }, h('span', { 'class': 'tab', text: key }), list));
+      }
+      list.appendChild(lessonRow(l));
+    });
+    app.appendChild(wrap);
+  }
+
+  /* ---------- lesson page ---------- */
+  function makeWriter(target, ch) {
+    if (!window.HanziWriter || !Data.strokes || !Data.strokes[ch]) return null;
+    try {
+      return window.HanziWriter.create(target, ch, {
+        width: 168, height: 168, padding: 12,
+        showOutline: true, showCharacter: true,
+        strokeColor: INK, outlineColor: TONE, drawingColor: RED, highlightColor: RED, drawingWidth: 6,
+        strokeAnimationSpeed: 0.9, delayBetweenStrokes: 320, showHintAfterMisses: 2, highlightOnComplete: true,
+        charDataLoader: function (c, done) { done(Data.strokes[c]); }
+      });
+    } catch (e) { return null; }
+  }
+
+  function kanaCard(k, date) {
+    var ch = String(k.char || '');
+    var card = h('article', { 'class': 'kana-card' });
+    card.appendChild(h('div', { 'class': 'kana-top' },
+      ja(ch, 'glyph'),
+      h('div', { 'class': 'row' }, h('span', { 'class': 'romaji', text: k.romaji || '' }), sayBtn(k.say || ch))));
+    var box = h('div', { 'class': 'writer' });
+    card.appendChild(box);
+    var state = h('p', { 'class': 'trace-ok', 'aria-live': 'polite' });
+    var writer = chars(ch).length === 1 ? makeWriter(box, ch) : null;
+    function showCount() {
+      var t = (Store.get(date).traced || {})[ch];
+      state.textContent = t ? '已经描对 ' + t + ' 次' : '';
+    }
+    if (writer) {
+      var watch = h('button', { 'class': 'btn sm', type: 'button', text: '看笔顺' });
+      var trace = h('button', { 'class': 'btn sm hi', type: 'button', text: '自己描' });
+      watch.addEventListener('click', function () {
+        try { writer.cancelQuiz(); writer.showCharacter({ duration: 0 }); writer.animateCharacter(); } catch (e) {}
+      });
+      trace.addEventListener('click', function () {
+        state.textContent = '按笔顺一笔一笔描，写错两次会有提示。';
+        try {
+          writer.quiz({
+            onComplete: function () {
+              var traced = Object.assign({}, Store.get(date).traced || {});
+              traced[ch] = (traced[ch] || 0) + 1;
+              Store.patch(date, { traced: traced }, true);
+              showCount();
+            }
+          });
+        } catch (e) {}
+      });
+      card.appendChild(h('div', { 'class': 'row' }, watch, trace));
+    } else {
+      box.className = 'writer plain ja'; box.lang = 'ja'; box.textContent = ch;
+      if (chars(ch).length > 1) box.style.fontSize = '64px';
+    }
+    card.appendChild(state); showCount();
+    if (k.hint) card.appendChild(h('p', { 'class': 'note small' }, h('b', { text: '联想' }), k.hint));
+    if (k.tip) card.appendChild(h('p', { 'class': 'note small' }, h('b', { text: '写法' }), k.tip));
+    return card;
+  }
+
+  function wordRow(w) {
+    var main = h('div', { 'class': 'word-main' }, ja(w.jp || '', 'word-jp'),
+      h('span', { 'class': 'word-ro', text: w.romaji || '' }), h('span', { text: w.zh || '' }));
+    var body = h('div', {}, main);
+    if (w.note) body.appendChild(h('p', { 'class': 'muted small', text: w.note }));
+    return h('div', { 'class': 'word' }, sayBtn(w.say || w.jp), body);
+  }
+
+  function sketchPad(storeKey, guideSpec) {
+    var S = 600, key = storeKey, tool = 'ink', size = 7, drawing = false, last = null, undo = [], armed = false;
+    var guide = h('canvas', { width: S, height: S, 'aria-hidden': 'true' });
+    var cv = h('canvas', { width: S, height: S, 'class': 'pad-draw', role: 'img', 'aria-label': '画板' });
+    var g = guide.getContext('2d'), ctx = cv.getContext('2d');
+    function paintGuide(spec) {
+      g.clearRect(0, 0, S, S);
+      if (!spec) return;
+      if (spec.layout === 'yonkoma') {
+        g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = 'rgba(22,21,28,.45)'; g.font = '700 26px sans-serif'; g.textAlign = 'left'; g.textBaseline = 'top';
+        var order = [[1, 0], [0, 0], [1, 1], [0, 1]]; /* manga reads right to left */
+        order.forEach(function (c, i) {
+          var x = 14 + c[0] * 293, y = 14 + c[1] * 293;
+          g.strokeRect(x, y, 279, 279); g.fillText(String(i + 1), x + 10, y + 8);
+        });
+        return;
+      }
+      if (spec.char) {
+        var n = chars(spec.char).length;
+        g.fillStyle = 'rgba(22,21,28,.11)'; g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.font = '600 ' + Math.floor(440 / Math.max(1, n * 0.85)) + 'px "Klee One","YuKyokasho","Hiragino Maru Gothic ProN","Yu Gothic","Meiryo",serif';
+        g.fillText(spec.char, S / 2, S / 2 + 12);
+      }
+    }
+    function setGuide(spec) {
+      paintGuide(spec);
+      try { if (spec && spec.char && document.fonts && document.fonts.load) document.fonts.load('600 100px "Klee One"', spec.char).then(function () { paintGuide(spec); }).catch(function () {}); } catch (e) {}
+    }
+    function save() {
+      try { localStorage.setItem('mnk.draw.' + key, cv.toDataURL('image/png')); }
+      catch (e) {
+        try {
+          var olds = Object.keys(localStorage).filter(function (k) { return k.indexOf('mnk.draw.') === 0 && k !== 'mnk.draw.' + key; }).sort();
+          olds.slice(0, 5).forEach(function (k) { localStorage.removeItem(k); });
+          localStorage.setItem('mnk.draw.' + key, cv.toDataURL('image/png'));
+        } catch (e2) {}
+      }
+    }
+    function load() {
+      ctx.clearRect(0, 0, S, S); undo = [];
+      var data = null; try { data = localStorage.getItem('mnk.draw.' + key); } catch (e) {}
+      if (!data) return;
+      var img = new Image(); var k0 = key;
+      img.onload = function () { if (k0 === key) ctx.drawImage(img, 0, 0, S, S); };
+      img.src = data;
+    }
+    function pos(e) { var r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * S / r.width, y: (e.clientY - r.top) * S / r.height }; }
+    function style(e) {
+      ctx.globalCompositeOperation = tool === 'erase' ? 'destination-out' : 'source-over';
+      ctx.strokeStyle = ctx.fillStyle = tool === 'red' ? RED : INK;
+      var w = tool === 'erase' ? size * 4 : size;
+      if (e && e.pointerType === 'pen' && e.pressure > 0) w *= 0.45 + e.pressure * 1.1;
+      ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    }
+    cv.addEventListener('pointerdown', function (e) {
+      if (e.button > 0) return;
+      e.preventDefault();
+      try { cv.setPointerCapture(e.pointerId); } catch (x) {}
+      try { undo.push(ctx.getImageData(0, 0, S, S)); if (undo.length > 8) undo.shift(); } catch (x) {}
+      drawing = true; last = pos(e); style(e);
+      ctx.beginPath(); ctx.arc(last.x, last.y, ctx.lineWidth / 2, 0, Math.PI * 2); ctx.fill();
+    });
+    cv.addEventListener('pointermove', function (e) {
+      if (!drawing) return;
+      e.preventDefault();
+      var p = pos(e); style(e);
+      ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke(); last = p;
+    });
+    ['pointerup', 'pointercancel'].forEach(function (n) {
+      cv.addEventListener(n, function () { if (drawing) { drawing = false; ctx.globalCompositeOperation = 'source-over'; save(); } });
+    });
+
+    var tools = [['ink', '墨水', INK], ['red', '红笔', RED], ['erase', '橡皮', null]];
+    var toolBtns = tools.map(function (t) {
+      var b = h('button', { 'class': 'btn sm' + (t[0] === tool ? ' on' : ''), type: 'button', 'aria-pressed': t[0] === tool ? 'true' : 'false' },
+        t[2] ? h('span', { 'class': 'swatch', style: 'background:' + t[2] }) : null, t[1]);
+      b.addEventListener('click', function () {
+        tool = t[0];
+        toolBtns.forEach(function (x, i) { var on = tools[i][0] === tool; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+      });
+      return b;
+    });
+    var sizes = [['细', 4], ['中', 7], ['粗', 13]];
+    var sizeBtns = sizes.map(function (s) {
+      var b = h('button', { 'class': 'btn sm' + (s[1] === size ? ' on' : ''), type: 'button', text: s[0], 'aria-pressed': s[1] === size ? 'true' : 'false' });
+      b.addEventListener('click', function () {
+        size = s[1];
+        sizeBtns.forEach(function (x, i) { var on = sizes[i][1] === size; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+      });
+      return b;
+    });
+    var undoBtn = h('button', { 'class': 'btn sm', type: 'button', text: '撤销' });
+    undoBtn.addEventListener('click', function () { var im = undo.pop(); if (im) { ctx.putImageData(im, 0, 0); save(); } });
+    var clearBtn = h('button', { 'class': 'btn sm', type: 'button', text: '清空' });
+    clearBtn.addEventListener('click', function () {
+      if (!armed) { armed = true; clearBtn.textContent = '再点一次清空'; setTimeout(function () { armed = false; clearBtn.textContent = '清空'; }, 2500); return; }
+      armed = false; clearBtn.textContent = '清空';
+      try { undo.push(ctx.getImageData(0, 0, S, S)); } catch (x) {}
+      ctx.clearRect(0, 0, S, S); save();
+    });
+    var node = h('div', { 'class': 'pad-wrap' },
+      h('div', { 'class': 'pad' }, guide, cv),
+      h('div', { 'class': 'row' }, toolBtns, sizeBtns, undoBtn, clearBtn));
+    setGuide(guideSpec); load();
+    return { node: node, setKey: function (k, spec) { key = k; setGuide(spec); load(); } };
+  }
+
+  function quizSection(lesson, date) {
+    var qs = (lesson.quiz || []).filter(function (q) { return q && Array.isArray(q.options) && q.options.length > 1; });
+    var sec = h('section', { 'class': 'panel', id: 'sec-quiz' }, h('span', { 'class': 'tab', text: '小测' }));
+    var body = h('div', { 'class': 'stack' }); sec.appendChild(body);
+    function run() {
+      body.textContent = '';
+      var answered = 0, score = 0, wrong = [];
+      var total = h('p', { 'class': 'score', 'aria-live': 'polite' });
+      qs.forEach(function (q, qi) {
+        var block = h('div', { 'class': 'q' });
+        block.appendChild(h('div', { 'class': 'row' }, h('span', { 'class': 'q-text', text: (qi + 1) + '. ' + q.q }), q.say ? sayBtn(q.say, '听题目里的发音') : null));
+        var verdict = h('p', { 'class': 'verdict', 'aria-live': 'polite' });
+        var isKana = q.options.every(function (o) { return chars(o).length <= 3 && /^[぀-ヿー]+$/.test(o); });
+        var btns = q.options.map(function (o, oi) {
+          var b = h('button', { 'class': 'btn opt' + (isKana ? ' kana ja' : ''), type: 'button', text: String(o) });
+          if (isKana) b.lang = 'ja';
+          b.addEventListener('click', function () {
+            if (block.getAttribute('data-done')) return;
+            block.setAttribute('data-done', '1');
+            var ok = oi === q.answer;
+            btns.forEach(function (x, xi) { x.disabled = true; if (xi === q.answer) x.classList.add('right'); });
+            if (!ok) b.classList.add('wrong');
+            verdict.textContent = '';
+            verdict.appendChild(h('span', { 'class': 'mark', text: ok ? '○' : '×' }));
+            verdict.appendChild(document.createTextNode((ok ? '答对了。' : '再记一下。') + (q.explain ? ' ' + q.explain : '')));
+            answered++; if (ok) score++; else wrong.push(q.q);
+            if (answered === qs.length) {
+              total.textContent = '得分 ' + score + ' / ' + qs.length + (score === qs.length ? '　全对！' : '');
+              Store.patch(date, { quiz: { score: score, total: qs.length, wrong: wrong, at: new Date().toISOString() } }, true);
+              again.hidden = false;
+            }
+          });
+          return b;
+        });
+        block.appendChild(h('div', { 'class': 'opts' }, btns));
+        block.appendChild(verdict);
+        body.appendChild(block);
+      });
+      var again = h('button', { 'class': 'btn sm', type: 'button', text: '再做一次', hidden: true });
+      again.addEventListener('click', run);
+      body.appendChild(h('div', { 'class': 'row' }, total, again));
+      var prev = Store.get(date).quiz;
+      if (prev && prev.total) total.textContent = '上次得分 ' + prev.score + ' / ' + prev.total;
+    }
+    run();
+    return sec;
+  }
+
+  function renderLesson(root, lesson, date) {
+    var prog = Store.get(date);
+    var jump = function (id) { var t = document.getElementById(id); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+
+    /* header */
+    var head = h('section', { 'class': 'panel pop hero' },
+      lessonMeta(lesson, true), h('h1', { text: lesson.title || niceDate(date) }),
+      lesson.subtitle ? h('p', { 'class': 'sub', text: lesson.subtitle }) : null);
+    var headStamp = h('div', { 'class': 'stamp-wrap' });
+    head.appendChild(headStamp);
+    root.appendChild(head);
+    if (lesson.intro) root.appendChild(h('div', { 'class': 'bubble' }, ja('せんせい', 'who'), h('p', { text: lesson.intro })));
+
+    /* steps */
+    var steps = Array.isArray(lesson.steps) ? lesson.steps : [];
+    if (steps.length) {
+      var ol = h('ol', { 'class': 'steps' });
+      steps.forEach(function (s, i) {
+        var id = 'step-' + i, done = !!(prog.steps && prog.steps[i]);
+        var li = h('li', { 'class': 'step' + (done ? ' done' : '') });
+        var box = h('input', { type: 'checkbox', id: id });
+        box.checked = done;
+        box.addEventListener('change', function () {
+          var arr = (Store.get(date).steps || []).slice(); while (arr.length < steps.length) arr.push(false);
+          arr[i] = box.checked; li.classList.toggle('done', box.checked);
+          Store.patch(date, { steps: arr }, true);
+        });
+        var bodyEl = h('div', { 'class': 'step-body' },
+          h('label', { 'for': id, 'class': 'step-title', text: (i + 1) + '. ' + (s.title || '') + (s.min ? '（' + s.min + ' 分钟）' : '') }),
+          s.detail ? h('p', { text: s.detail }) : null);
+        var row = h('div', { 'class': 'row' });
+        if (s.min) {
+          var tb = h('button', { 'class': 'btn sm', type: 'button', text: '计时 ' + s.min + ' 分钟' });
+          tb.addEventListener('click', function () { Timer.start('第 ' + (i + 1) + ' 步', s.min); });
+          row.appendChild(tb);
+        }
+        if (s.target && /^[a-z]+$/.test(s.target)) {
+          var jb = h('button', { 'class': 'btn sm', type: 'button', text: '去这一部分 ↓' });
+          jb.addEventListener('click', function () { jump('sec-' + s.target); });
+          row.appendChild(jb);
+        }
+        if (row.childNodes.length) bodyEl.appendChild(row);
+        li.appendChild(box); li.appendChild(bodyEl); ol.appendChild(li);
+      });
+      root.appendChild(h('section', { 'class': 'panel', id: 'sec-steps' }, h('span', { 'class': 'tab', text: '今天做什么' }), ol));
+    }
+
+    /* free-form notes */
+    (Array.isArray(lesson.notes) ? lesson.notes : []).forEach(function (n) {
+      var sec = h('section', { 'class': 'panel' }, n.title ? h('h2', { text: n.title }) : null);
+      String(n.body || '').split(/\n+/).forEach(function (para) { if (para.trim()) sec.appendChild(h('p', { text: para })); });
+      root.appendChild(sec);
+    });
+
+    /* kana */
+    var kana = Array.isArray(lesson.kana) ? lesson.kana : [];
+    if (kana.length) {
+      var grid = h('div', { 'class': 'kana-grid' });
+      kana.forEach(function (k) { grid.appendChild(kanaCard(k, date)); });
+      root.appendChild(h('section', { 'class': 'panel', id: 'sec-kana' }, h('span', { 'class': 'tab', text: '今天的假名' }), grid));
+    }
+
+    /* words + phrases */
+    [['words', '单词'], ['phrases', '句子']].forEach(function (pair) {
+      var arr = Array.isArray(lesson[pair[0]]) ? lesson[pair[0]] : [];
+      if (!arr.length) return;
+      var box = h('div', {}); arr.forEach(function (w) { box.appendChild(wordRow(w)); });
+      root.appendChild(h('section', { 'class': 'panel', id: 'sec-' + pair[0] }, h('span', { 'class': 'tab', text: pair[1] }), box));
+    });
+
+    /* sketch pad */
+    if (lesson.sketch) {
+      var sk = lesson.sketch, list = Array.isArray(sk.chars) ? sk.chars.filter(Boolean) : [];
+      var first = list[0] || null;
+      var spec = function (c) { return sk.layout === 'yonkoma' ? { layout: 'yonkoma' } : (c ? { char: c } : null); };
+      var padObj = sketchPad(date + '.' + (first || 'main'), spec(first));
+      var sec = h('section', { 'class': 'panel', id: 'sec-sketch' }, h('span', { 'class': 'tab', text: sk.title || '画板' }));
+      if (sk.prompt) sec.appendChild(h('p', { text: sk.prompt }));
+      if (sk.layout === 'yonkoma') sec.appendChild(h('p', { 'class': 'muted small', text: '四格漫画按日本的习惯从右往左读：右上是第 1 格。' }));
+      if (list.length > 1 && sk.layout !== 'yonkoma') {
+        var tabs = list.map(function (c) {
+          var b = h('button', { 'class': 'btn sm ja' + (c === first ? ' on' : ''), type: 'button', lang: 'ja', text: c, 'aria-pressed': c === first ? 'true' : 'false' });
+          b.addEventListener('click', function () {
+            tabs.forEach(function (x) { x.classList.remove('on'); x.setAttribute('aria-pressed', 'false'); });
+            b.classList.add('on'); b.setAttribute('aria-pressed', 'true');
+            padObj.setKey(date + '.' + c, spec(c));
+          });
+          return b;
+        });
+        sec.appendChild(h('div', { 'class': 'row' }, tabs));
+      }
+      sec.appendChild(padObj.node);
+      root.appendChild(sec);
+    }
+
+    /* links */
+    var links = (Array.isArray(lesson.links) ? lesson.links : []).filter(function (l) { return l && /^https?:\/\//i.test(l.url || ''); });
+    if (links.length) {
+      var lbox = h('div', {});
+      links.forEach(function (l) {
+        var a = h('a', { 'class': 'linkrow', href: l.url, rel: 'noopener noreferrer' }, svg(ICON_OUT),
+          h('span', {}, h('span', { 'class': 'item-title', text: l.title || l.url }), l.note ? h('span', { 'class': 'muted small', text: '　' + l.note }) : null));
+        try { if (window.self === window.top) a.target = '_blank'; } catch (e) {}
+        lbox.appendChild(a);
+      });
+      root.appendChild(h('section', { 'class': 'panel', id: 'sec-links' }, h('span', { 'class': 'tab', text: '看和听' }), lbox));
+    }
+
+    /* quiz */
+    if (Array.isArray(lesson.quiz) && lesson.quiz.length) root.appendChild(quizSection(lesson, date));
+
+    /* parent */
+    if (lesson.parent) root.appendChild(h('section', { 'class': 'panel parent' }, h('span', { 'class': 'tab', text: '家长今天只做一件事' }), h('p', { text: lesson.parent })));
+
+    /* done */
+    var doneSec = h('section', { 'class': 'panel pop' });
+    function paintDone(fresh) {
+      var p = Store.get(date);
+      doneSec.textContent = ''; headStamp.textContent = '';
+      if (p.done) {
+        headStamp.appendChild(hanamaru(64));
+        doneSec.appendChild(h('div', { 'class': 'done-row' }, hanamaru(96, fresh),
+          h('div', {}, ja('よくできました！', 'yoku', 'p'), h('p', { text: '做得很好，今天的任务完成了。' }))));
+        var undoB = h('button', { 'class': 'btn sm', type: 'button', text: '还没做完，取消完成' });
+        undoB.addEventListener('click', function () { Store.patch(date, { done: false }, true); paintDone(false); });
+        doneSec.appendChild(h('div', { 'class': 'row' }, undoB));
+      } else {
+        var b = h('button', { 'class': 'btn primary', type: 'button', text: '今天的任务完成了' });
+        b.addEventListener('click', function () { Store.patch(date, { done: true, doneAt: new Date().toISOString() }, true); paintDone(true); });
+        doneSec.appendChild(h('h2', { text: '都做完了吗？' }));
+        doneSec.appendChild(h('div', { 'class': 'row' }, b));
+      }
+    }
+    paintDone(false);
+    root.appendChild(doneSec);
+
+    /* pager */
+    var ls = Data.manifest.lessons, idx = -1;
+    ls.forEach(function (l, i) { if (l.date === date) idx = i; });
+    var prev = idx > 0 ? ls[idx - 1] : null, next = idx >= 0 && idx < ls.length - 1 ? ls[idx + 1] : null;
+    root.appendChild(h('nav', { 'class': 'pager', 'aria-label': '前后课程' },
+      prev ? h('a', { 'class': 'btn sm', href: '#d-' + prev.date, text: '← 第 ' + (prev.day || '?') + ' 天' }) : h('span', {}),
+      h('a', { 'class': 'btn sm', href: '#all', text: '全部课程' }),
+      next ? h('a', { 'class': 'btn sm', href: '#d-' + next.date, text: '第 ' + (next.day || '?') + ' 天 →' }) : h('span', {})));
+  }
+
+  function viewLesson(date) {
+    var holder = h('div', { 'class': 'stack' }, h('p', { 'class': 'muted', text: '正在翻到这一页…' }));
+    app.appendChild(holder);
+    Promise.all([loadLesson(date), loadStrokes()]).then(function (res) {
+      if (currentRoute() !== 'd-' + date) return;
+      holder.textContent = '';
+      renderLesson(holder, res[0] || {}, date);
+    }).catch(function () {
+      if (currentRoute() !== 'd-' + date) return;
+      holder.textContent = '';
+      holder.appendChild(errorPanel('没有找到 ' + niceDate(date) + ' 的课程', '#all', '看全部课程'));
+    });
+  }
+
+  /* ---------- review ---------- */
+  var reviewTimer = null;
+  function viewReview() {
+    var holder = h('div', { 'class': 'stack' }, h('h1', { text: '复习' }), h('p', { 'class': 'muted', text: '正在整理学过的内容…' }));
+    app.appendChild(holder);
+    var today = todayStr();
+    var ls = Data.manifest.lessons.filter(function (l) { return l.date <= today; });
+    Promise.all(ls.map(function (l) { return loadLesson(l.date).catch(function () { return null; }); })).then(function (all) {
+      if (currentRoute() !== 'review') return;
+      var kana = [], seenK = {}, words = [], seenW = {};
+      all.forEach(function (l) {
+        if (!l) return;
+        (l.kana || []).forEach(function (k) { if (k && k.char && !seenK[k.char]) { seenK[k.char] = 1; kana.push(k); } });
+        (l.words || []).concat(l.phrases || []).forEach(function (w) { if (w && w.jp && !seenW[w.jp]) { seenW[w.jp] = 1; words.push(w); } });
+      });
+      holder.textContent = '';
+      holder.appendChild(h('h1', { text: '复习' }));
+      if (!kana.length && !words.length) { holder.appendChild(h('p', { 'class': 'muted', text: '学完第一课以后，学过的假名和单词会收在这里。' })); return; }
+
+      if (kana.length) {
+        var grid = h('div', { 'class': 'kgrid hide-ro' });
+        kana.forEach(function (k) {
+          var b = h('button', { 'class': 'kcell', type: 'button', 'aria-label': k.char + '，点一下看读音' }, ja(k.char), h('span', { 'class': 'ro', text: k.romaji || '' }));
+          b.addEventListener('click', function () { b.classList.add('shown'); Voice.speak(k.say || k.char); });
+          grid.appendChild(b);
+        });
+        var toggle = h('button', { 'class': 'btn sm', type: 'button', text: '显示全部读音', 'aria-pressed': 'false' });
+        toggle.addEventListener('click', function () {
+          var hidden = grid.classList.toggle('hide-ro');
+          toggle.textContent = hidden ? '显示全部读音' : '遮住读音'; toggle.setAttribute('aria-pressed', hidden ? 'false' : 'true');
+        });
+        holder.appendChild(h('section', { 'class': 'panel' },
+          h('div', { 'class': 'row spread' }, h('span', { 'class': 'tab', text: '学过的 ' + kana.length + ' 个假名' }), toggle),
+          h('p', { 'class': 'muted small', text: '先自己读，再点一下核对读音。' }), grid));
+
+        var checkSec = h('section', { 'class': 'panel pop', id: 'sec-check' }, h('span', { 'class': 'tab hi', text: '打乱抽查' }));
+        var stage = h('div', { 'class': 'stack' }); checkSec.appendChild(stage);
+        var single = kana.filter(function (k) { return chars(k.char).length === 1; });
+        var startScreen = function () {
+          clearInterval(reviewTimer); stage.textContent = '';
+          stage.appendChild(h('p', { text: '一张一张随机出，孩子读，家长按“读对了”或“没读对”。过关目标：46 个基本假名两分钟内全对。' }));
+          var go = h('button', { 'class': 'btn primary', type: 'button', text: '开始抽查（' + single.length + ' 张）' });
+          go.addEventListener('click', function () { runCheck(single); });
+          stage.appendChild(h('div', { 'class': 'row' }, go));
+        };
+        var runCheck = function (deck) {
+          var order = shuffle(deck), i = 0, right = 0, missed = [], t0 = Date.now();
+          var count = h('span', { 'class': 'clock' }), time = h('span', { 'class': 'clock' });
+          var glyph = ja('', null), ro = h('span', { 'class': 'ro' });
+          var reveal = h('button', { 'class': 'btn', type: 'button', text: '看读音' });
+          var yes = h('button', { 'class': 'btn primary', type: 'button', text: '○ 读对了' });
+          var no = h('button', { 'class': 'btn', type: 'button', text: '× 没读对' });
+          function show() {
+            var k = order[i];
+            glyph.textContent = k.char; ro.textContent = ''; count.textContent = (i + 1) + ' / ' + order.length;
+          }
+          function step(ok) {
+            var k = order[i]; if (ok) right++; else missed.push(k);
+            i++;
+            if (i >= order.length) finish(); else show();
+          }
+          function finish() {
+            clearInterval(reviewTimer);
+            var secs = Math.round((Date.now() - t0) / 1000);
+            Store.saveCheck({ id: today + '-' + pad2(new Date().getHours()) + pad2(new Date().getMinutes()) + pad2(new Date().getSeconds()), date: today, total: order.length, right: right, seconds: secs, missed: missed.map(function (k) { return k.char; }), at: new Date().toISOString() });
+            stage.textContent = '';
+            stage.appendChild(h('p', { 'class': 'score', text: order.length + ' 张里读对 ' + right + ' 张，用时 ' + clock(secs) }));
+            if (missed.length) {
+              stage.appendChild(h('p', {}, '没读对的：', ja(missed.map(function (k) { return k.char; }).join('　'))));
+              var redo = h('button', { 'class': 'btn hi', type: 'button', text: '只练没读对的' });
+              redo.addEventListener('click', function () { runCheck(missed); });
+              stage.appendChild(h('div', { 'class': 'row' }, redo));
+            } else stage.appendChild(h('div', { 'class': 'stamp-wrap' }, hanamaru(72, true), ja('よくできました！')));
+            var back = h('button', { 'class': 'btn sm', type: 'button', text: '重新开始' });
+            back.addEventListener('click', startScreen);
+            stage.appendChild(h('div', { 'class': 'row' }, back));
+          }
+          reveal.addEventListener('click', function () { var k = order[i]; ro.textContent = k.romaji || ''; Voice.speak(k.say || k.char); });
+          yes.addEventListener('click', function () { step(true); });
+          no.addEventListener('click', function () { step(false); });
+          stage.textContent = '';
+          stage.appendChild(h('div', { 'class': 'row spread' }, count, time));
+          stage.appendChild(h('div', { 'class': 'flash' }, glyph, ro));
+          stage.appendChild(h('div', { 'class': 'row', style: 'justify-content:center' }, reveal, yes, no));
+          clearInterval(reviewTimer);
+          reviewTimer = setInterval(function () { time.textContent = clock((Date.now() - t0) / 1000); }, 500);
+          time.textContent = '00:00'; show();
+        };
+        startScreen();
+        holder.appendChild(checkSec);
+      }
+
+      if (words.length) {
+        var box = h('div', {}); words.forEach(function (w) { box.appendChild(wordRow(w)); });
+        holder.appendChild(h('section', { 'class': 'panel' }, h('span', { 'class': 'tab', text: '单词本（' + words.length + '）' }), box));
+      }
+    });
+  }
+
+  /* ---------- router ---------- */
+  var offStore = null;
+  function setNav(name) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'), function (a) {
+      if (a.getAttribute('data-nav') === name) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  }
+  function render() {
+    clearInterval(reviewTimer);
+    if (offStore) { offStore(); offStore = null; }
+    var name = currentRoute(), m = /^d-(\d{4}-\d{2}-\d{2})$/.exec(name);
+    app.textContent = '';
+    if (m) { setNav(''); viewLesson(m[1]); }
+    else if (name === 'all') { setNav('all'); viewAll(); offStore = Store.onChange(render); }
+    else if (name === 'review') { setNav('review'); viewReview(); }
+    else { setNav('home'); viewHome(); offStore = Store.onChange(render); }
+  }
+  function route() {
+    var name = currentRoute();
+    var isList = !/^d-/.test(name) && name !== 'review';
+    if (isList && Date.now() - Data.loadedAt > 120000) {
+      loadManifest().catch(function () {}).then(function () { render(); window.scrollTo(0, 0); });
+      return;
+    }
+    render(); window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', route);
+
+  loadManifest().then(route).catch(function () {
+    app.textContent = '';
+    var retry = h('button', { 'class': 'btn', type: 'button', text: '重新加载' });
+    retry.addEventListener('click', function () { loadManifest().then(route).catch(function () {}); });
+    app.appendChild(h('section', { 'class': 'panel' }, h('h2', { text: '课程目录没有加载出来' }), h('p', { 'class': 'muted', text: '检查一下网络，然后再试一次。' }), h('div', { 'class': 'row' }, retry)));
+  });
+})();
+</script>
+</body>
+</html>
