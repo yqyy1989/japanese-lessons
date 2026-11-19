@@ -512,7 +512,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
     while (guard++ < 400) {
       var p = Store.get(d), l = map[d];
       if (p.done) n++;
-      else if (d === today || (l && l.kind === 'light')) { /* does not break the run */ }
+      else if (d === today || !l || l.kind === 'light') { /* today, rest days and light days do not break the run */ }
       else break;
       d = addDays(d, -1);
       if (Data.manifest.lessons.length && d < Data.manifest.lessons[0].date) break;
@@ -537,8 +537,8 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
     else {
       wrap.appendChild(h('section', { 'class': 'panel' },
         h('span', { 'class': 'tab', text: niceDate(today) + ' ' + weekday(today) }),
-        h('h2', { text: ls.length ? '今天的任务还在路上' : '第一课正在准备' }),
-        h('p', { 'class': 'muted', text: '每天下午 3 点前，老师会把当天的任务放到这里。到时候刷新一下就能看到。' })));
+        h('h2', { text: weekday(today) === '周日' ? '今天休息' : (ls.length ? '今天的任务还在路上' : '第一课正在准备') }),
+        h('p', { 'class': 'muted', text: weekday(today) === '周日' ? '周日是休息日，没有新任务。想翻一翻的话，可以去复习页。' : '周一到周六每天下午 3 点前，老师会把当天的任务放到这里。到时候刷新一下就能看到。' })));
       if (latest) wrap.appendChild(hero(latest, false));
     }
 
