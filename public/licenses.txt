@@ -3,4 +3,7 @@ Stroke data (data/kana-strokes.json) is derived from the AnimCJK project
 Copyright 2016-2026 FM&SH, redistributed under the Arphic Public License
 (https://ftp.gnu.org/non-gnu/chinese-fonts-truetype/LICENSE).
 
+The site icon (favicon.svg, favicon.ico, apple-touch-icon.png) uses the outline of あ
+from the same AnimCJK stroke data, under the same license.
+
 Stroke animation uses Hanzi Writer v3.7.3 (https://chanind.github.io/hanzi-writer), MIT License.
