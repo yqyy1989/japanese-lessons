@@ -41,6 +41,7 @@ a{color:inherit}
 button{font:inherit;color:inherit}
 .ja{font-family:var(--font-kana);font-weight:600}
 :focus-visible{outline:3px dashed var(--ink);outline-offset:3px}
+[hidden]{display:none!important}
 
 /* ---------- top bar ---------- */
 .top{position:sticky;top:0;z-index:20;background:var(--sheet);border-bottom:2.5px solid var(--ink)}
@@ -173,6 +174,13 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
 .flash .ja{font-size:150px;line-height:1}
 .flash .ro{font-size:28px;font-weight:700;color:var(--red);min-height:1.5em}
 .clock{font-variant-numeric:tabular-nums;font-weight:700}
+.flash.sm{width:176px;box-shadow:4px 4px 0 var(--ink)}
+.flash.sm .ja{font-size:96px}
+.flash.sm .ro{font-size:22px}
+.drill-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.drill-card{border:2.5px solid var(--ink);border-radius:3px;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--sheet)}
+.drill-card .row{justify-content:center}
+.drill-say{font-weight:700;min-height:1.6em;text-align:center}
 
 /* ---------- timer + footer ---------- */
 .timerbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;background:var(--hi);border:2.5px solid var(--ink);border-radius:999px;box-shadow:3px 3px 0 var(--ink);padding:6px 8px 6px 18px;display:flex;align-items:center;gap:12px;font-weight:700;font-variant-numeric:tabular-nums;max-width:calc(100% - 32px)}
@@ -356,7 +364,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
       }
       viaClaude(text);
     }
-    return { speak: speak };
+    return { speak: speak, ready: available };
   })();
   function sayBtn(text, label) {
     var b = h('button', { 'class': 'btn sm say', type: 'button', 'aria-label': label || ('听 ' + text + ' 的发音'), on: { click: function () { Voice.speak(text); } } });
@@ -449,6 +457,8 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
     return Data.strokesP;
   }
   function byDate() { var o = {}; Data.manifest.lessons.forEach(function (l) { o[l.date] = l; }); return o; }
+  function shownLessons() { var t = todayStr(); return Data.manifest.lessons.filter(function (l) { return l.date <= t; }); }
+  function upcomingLessons() { var t = todayStr(); return Data.manifest.lessons.filter(function (l) { return l.date > t; }); }
 
   /* ---------- step timer ---------- */
   var Timer = (function () {
@@ -485,7 +495,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
   function lessonMeta(l, withToday) {
     var today = todayStr();
     return h('div', { 'class': 'meta' },
-      h('span', { 'class': 'tab', text: (withToday && l.date === today ? '今天 · ' : '') + '第 ' + (l.day || '?') + ' 天' }),
+      h('span', { 'class': 'tab', text: (l.date > today ? '预告 · ' : (withToday && l.date === today ? '今天 · ' : '')) + '第 ' + (l.day || '?') + ' 天' }),
       h('span', { text: niceDate(l.date) + ' ' + (l.weekday || weekday(l.date)) }),
       kindChip(l.kind),
       l.minutes ? h('span', { text: l.minutes + ' 分钟' }) : null);
@@ -520,7 +530,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
     return n;
   }
   function viewHome() {
-    var today = todayStr(), ls = Data.manifest.lessons, map = byDate();
+    var today = todayStr(), ls = shownLessons(), map = byDate();
     var cur = map[today], latest = ls[ls.length - 1];
     var wrap = h('div', { 'class': 'stack' });
 
@@ -568,12 +578,21 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
         h('p', { text: '学过的假名和单词都收在复习页里，可以点读，也可以打乱抽查。' }),
         h('div', { 'class': 'row' }, h('a', { 'class': 'btn hi', href: '#review', text: '去复习' }))));
     }
+    var up = upcomingLessons();
+    if (up.length) {
+      var upList = h('div', { 'class': 'list' });
+      up.slice(0, 3).forEach(function (l3) { upList.appendChild(lessonRow(l3)); });
+      wrap.appendChild(h('section', { 'class': 'panel' },
+        h('span', { 'class': 'tab', text: '已经备好的课' }),
+        h('p', { 'class': 'muted small', text: '家长可以先看一眼，到了那天再做。' }),
+        upList));
+    }
     app.appendChild(wrap);
   }
 
   /* ---------- all lessons ---------- */
   function viewAll() {
-    var ls = Data.manifest.lessons.slice().reverse();
+    var ls = shownLessons().reverse();
     var wrap = h('div', { 'class': 'stack' }, h('h1', { text: '全部课程' }));
     if (!ls.length) wrap.appendChild(h('p', { 'class': 'muted', text: '还没有课程。第一课放上来以后会出现在这里。' }));
     var month = '', list = null;
@@ -761,6 +780,118 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
     return { node: node, setKey: function (k, spec) { key = k; setGuide(spec); load(); } };
   }
 
+  function drillPanel(pool, date) {
+    pool = (pool || []).filter(function (k) { return k && k.char; });
+    var single = pool.filter(function (k) { return chars(k.char).length === 1; });
+    var sec = h('section', { 'class': 'panel', id: 'sec-drill' }, h('span', { 'class': 'tab hi', text: '抽假名和听写' }));
+    var grid = h('div', { 'class': 'drill-grid' }); sec.appendChild(grid);
+    function other(list, not) { var k; do { k = list[Math.floor(Math.random() * list.length)]; } while (list.length > 1 && k === not); return k; }
+    function tally(kind, ok) {
+      if (!date) return;
+      var d = Object.assign({}, Store.get(date).drill || {});
+      var t = Object.assign({ right: 0, total: 0 }, d[kind] || {});
+      t.total++; if (ok) t.right++; d[kind] = t;
+      Store.patch(date, { drill: d }, true);
+    }
+
+    /* 1. random pick: the kana flicker until she presses stop, then she reads the one it lands on */
+    (function () {
+      var glyph = ja('？'), ro = h('span', { 'class': 'ro' });
+      var info = h('p', { 'class': 'drill-say', 'aria-live': 'polite' });
+      var go = h('button', { 'class': 'btn primary', type: 'button', text: '开始' });
+      var reveal = h('button', { 'class': 'btn sm', type: 'button', text: '看读音', hidden: true });
+      var yes = h('button', { 'class': 'btn sm hi', type: 'button', text: '○ 读对了', hidden: true });
+      var no = h('button', { 'class': 'btn sm', type: 'button', text: '× 没读对', hidden: true });
+      var tm = null, cur = null, last = null, t0 = 0, right = 0, total = 0;
+      function halt() { clearInterval(tm); tm = null; }
+      disposers.push(halt);
+      go.addEventListener('click', function () {
+        if (tm) {
+          halt();
+          cur = last = other(pool, last);
+          glyph.textContent = cur.char; t0 = Date.now();
+          go.textContent = '开始'; go.disabled = true; reveal.hidden = false;
+          info.textContent = '马上读出来！';
+          return;
+        }
+        ro.textContent = ''; reveal.hidden = true; yes.hidden = true; no.hidden = true; info.textContent = '';
+        go.textContent = '停！';
+        tm = setInterval(function () { cur = other(pool, cur); glyph.textContent = cur.char; }, 80);
+      });
+      reveal.addEventListener('click', function () {
+        if (!cur) return;
+        ro.textContent = cur.romaji || ''; Voice.speak(cur.say || cur.char);
+        info.textContent = '用时 ' + ((Date.now() - t0) / 1000).toFixed(1) + ' 秒';
+        reveal.hidden = true; yes.hidden = false; no.hidden = false; go.disabled = false; go.textContent = '再抽一个';
+      });
+      function judge(ok) {
+        total++; if (ok) right++; tally('spin', ok);
+        info.textContent = '读对 ' + right + ' / ' + total;
+        yes.hidden = true; no.hidden = true;
+      }
+      yes.addEventListener('click', function () { judge(true); });
+      no.addEventListener('click', function () { judge(false); });
+      grid.appendChild(h('div', { 'class': 'drill-card' },
+        h('h3', { text: '抽假名' }),
+        h('p', { 'class': 'muted small', text: '按“开始”，假名会飞快地跳；按“停！”抽中一个，马上大声读出来，再看读音对不对。' }),
+        h('div', { 'class': 'flash sm' }, glyph, ro), info,
+        h('div', { 'class': 'row' }, go, reveal, yes, no)));
+    })();
+
+    /* 2. dictation: she hears a kana and writes it from memory; strokes are checked when stroke data exists */
+    if (single.length) (function () {
+      var say = h('p', { 'class': 'drill-say', 'aria-live': 'polite', text: '按“听一个”开始。' });
+      var pad = h('div', { 'class': 'writer' });
+      var result = h('p', { 'class': 'verdict', 'aria-live': 'polite' });
+      var next = h('button', { 'class': 'btn primary', type: 'button', text: '听一个' });
+      var again = h('button', { 'class': 'btn sm', type: 'button', text: '再听一遍', hidden: true });
+      var show = h('button', { 'class': 'btn sm', type: 'button', text: '看答案', hidden: true });
+      var cur = null, last = null, writer = null, done = true, right = 0, total = 0;
+      function play() {
+        if (!cur) return;
+        if (Voice.ready()) { Voice.speak(cur.say || cur.char); say.textContent = writer ? '听到了吗？在格子里按笔顺写出来。' : '听到了吗？写在纸上，再看答案。'; }
+        else say.textContent = '这台设备播不出日语语音，看读音写：' + (cur.romaji || '');
+      }
+      function finish(ok) {
+        if (done || !cur) return;
+        done = true; total++; if (ok) right++; tally('dict', ok);
+        if (!ok) {
+          if (writer) { try { writer.cancelQuiz(); writer.showCharacter(); } catch (e) {} }
+          else { pad.className = 'writer plain ja'; pad.lang = 'ja'; pad.textContent = cur.char; }
+        }
+        result.textContent = '';
+        result.appendChild(h('span', { 'class': 'mark', text: ok ? '○' : '×' }));
+        result.appendChild(document.createTextNode((ok ? '写对了：' : '答案是：') + cur.char + '（' + (cur.romaji || '') + '）　写对 ' + right + ' / ' + total));
+        show.hidden = true;
+      }
+      next.addEventListener('click', function () {
+        cur = last = other(single, last); done = false;
+        result.textContent = ''; pad.textContent = ''; pad.className = 'writer'; pad.removeAttribute('lang'); writer = null;
+        if (window.HanziWriter && Data.strokes && Data.strokes[cur.char]) {
+          try {
+            writer = window.HanziWriter.create(pad, cur.char, {
+              width: 168, height: 168, padding: 12, showOutline: false, showCharacter: false,
+              strokeColor: INK, drawingColor: INK, highlightColor: RED, drawingWidth: 6,
+              showHintAfterMisses: false, highlightOnComplete: true,
+              charDataLoader: function (c, ready) { ready(Data.strokes[c]); }
+            });
+            writer.quiz({ onComplete: function () { finish(true); } });
+          } catch (e) { writer = null; }
+        }
+        next.textContent = '下一个'; again.hidden = false; show.hidden = false;
+        play();
+      });
+      again.addEventListener('click', play);
+      show.addEventListener('click', function () { finish(false); });
+      grid.appendChild(h('div', { 'class': 'drill-card' },
+        h('h3', { text: '听写' }),
+        h('p', { 'class': 'muted small', text: '听一个读音，不看字，把听到的假名写出来。笔顺和形状对了会自动判对；想不起来就按“看答案”。' }),
+        say, pad, result,
+        h('div', { 'class': 'row' }, next, again, show)));
+    })();
+    return sec;
+  }
+
   function quizSection(lesson, date) {
     var qs = (lesson.quiz || []).filter(function (q) { return q && Array.isArray(q.options) && q.options.length > 1; });
     var sec = h('section', { 'class': 'panel', id: 'sec-quiz' }, h('span', { 'class': 'tab', text: '小测' }));
@@ -917,6 +1048,10 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
       root.appendChild(h('section', { 'class': 'panel', id: 'sec-links' }, h('span', { 'class': 'tab', text: '看和听' }), lbox));
     }
 
+    /* random pick + dictation, built from today's kana (or the lesson's own drill list) */
+    var drillPool = Array.isArray(lesson.drill) && lesson.drill.length ? lesson.drill : kana;
+    if (drillPool.length) root.appendChild(drillPanel(drillPool, date));
+
     /* quiz */
     if (Array.isArray(lesson.quiz) && lesson.quiz.length) root.appendChild(quizSection(lesson, date));
 
@@ -948,7 +1083,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
     /* pager */
     var ls = Data.manifest.lessons, idx = -1;
     ls.forEach(function (l, i) { if (l.date === date) idx = i; });
-    var prev = idx > 0 ? ls[idx - 1] : null, next = idx >= 0 && idx < ls.length - 1 ? ls[idx + 1] : null;
+    var prev = idx > 0 ? ls[idx - 1] : null, next = idx >= 0 && idx < ls.length - 1 && ls[idx + 1].date <= todayStr() ? ls[idx + 1] : null;
     root.appendChild(h('nav', { 'class': 'pager', 'aria-label': '前后课程' },
       prev ? h('a', { 'class': 'btn sm', href: '#d-' + prev.date, text: '← 第 ' + (prev.day || '?') + ' 天' }) : h('span', {}),
       h('a', { 'class': 'btn sm', href: '#all', text: '全部课程' }),
@@ -1059,6 +1194,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
         };
         startScreen();
         holder.appendChild(checkSec);
+        holder.appendChild(drillPanel(kana, null));
       }
 
       if (words.length) {
@@ -1069,7 +1205,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
   }
 
   /* ---------- router ---------- */
-  var offStore = null;
+  var offStore = null, disposers = [];
   function setNav(name) {
     Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'), function (a) {
       if (a.getAttribute('data-nav') === name) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
@@ -1077,6 +1213,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
   }
   function render() {
     clearInterval(reviewTimer);
+    disposers.forEach(function (f) { try { f(); } catch (e) {} }); disposers = [];
     if (offStore) { offStore(); offStore = null; }
     var name = currentRoute(), m = /^d-(\d{4}-\d{2}-\d{2})$/.exec(name);
     app.textContent = '';
