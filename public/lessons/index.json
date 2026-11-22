@@ -1,5 +1,11 @@
 {"v":1,"title":"漫画日语课","start":"2026-11-19","lessons":[
 {"date":"2026-11-19","day":1,"weekday":"周四","kind":"new","title":"平假名 あ行","subtitle":"あ い う え お：日语的五个元音","minutes":30},
 {"date":"2026-11-20","day":2,"weekday":"周五","kind":"new","title":"平假名 か行","subtitle":"か き く け こ：在五个元音前面加上 k","minutes":30},
-{"date":"2026-11-21","day":3,"weekday":"周六","kind":"manga","title":"漫画日：假名联想卡","subtitle":"把这周的 10 个假名画成画，再画一格「秋天的池塘」","minutes":30}
+{"date":"2026-11-21","day":3,"weekday":"周六","kind":"manga","title":"漫画日：假名联想卡","subtitle":"把这周的 10 个假名画成画，再画一格「秋天的池塘」","minutes":30},
+{"date":"2026-11-23","day":4,"weekday":"周一","kind":"new","title":"平假名 さ行","subtitle":"さ し す せ そ：s 开头的一行，注意 し 读 shi","minutes":30},
+{"date":"2026-11-24","day":5,"weekday":"周二","kind":"new","title":"平假名 た行","subtitle":"た ち つ て と：t 开头的一行，ち 读 chi，つ 读 tsu","minutes":30},
+{"date":"2026-11-25","day":6,"weekday":"周三","kind":"class","title":"上课日：带着 20 个假名去教室","subtitle":"课前热身 10 分钟，课后当 5 分钟小老师，今天不学新假名","minutes":15},
+{"date":"2026-11-26","day":7,"weekday":"周四","kind":"new","title":"平假名 な行","subtitle":"な に ぬ ね の：n 开头的一行，の 就是中文的「的」","minutes":30},
+{"date":"2026-11-27","day":8,"weekday":"周五","kind":"new","title":"平假名 は行","subtitle":"は ひ ふ へ ほ：h 开头的一行，注意 ふ 读 fu","minutes":30},
+{"date":"2026-11-28","day":9,"weekday":"周六","kind":"manga","title":"漫画日：猫的小船","subtitle":"挑 8 个这周的假名画成画，再画一格有对白的漫画「ねこ の ふね」","minutes":30}
 ]}
