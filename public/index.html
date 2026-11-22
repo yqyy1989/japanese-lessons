@@ -1253,7 +1253,9 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
     }
     function same(s) { return s; }
     var all = [], byKey = {};
-    function cell(k, ro, script) { var it = { k: k, ro: ro, script: script }; all.push(it); byKey[k] = it; return it; }
+    /* a lone は or へ can be read aloud as the particle (wa, e); the katakana form is always read ha, he */
+    var sayAs = { 'は': 'ハ', 'へ': 'ヘ' };
+    function cell(k, ro, script) { var it = { k: k, ro: ro, script: script, say: sayAs[k] || k }; all.push(it); byKey[k] = it; return it; }
     function build(script, conv) {
       function rows(list) {
         return list.map(function (r) {
@@ -1497,7 +1499,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
         function show() {
           if (shown) return;
           shown = true; secs = (Date.now() - t0) / 1000;
-          ro.textContent = it.ro; Voice.speak(it.k);
+          ro.textContent = it.ro; Voice.speak(it.say);
           info.textContent = '用时 ' + secs.toFixed(1) + ' 秒。读对了吗？';
           reveal.hidden = true; yes.hidden = false; no.hidden = false;
         }
@@ -1548,7 +1550,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
         function label() { return it.k + '（' + it.ro + '）'; }
         function mark(sym, text) { result.textContent = ''; result.appendChild(h('span', { 'class': 'mark', text: sym })); result.appendChild(document.createTextNode(text)); }
         function play() {
-          if (Voice.ready()) { Voice.speak(it.k); say.textContent = canCheck ? '听到了吗？按笔顺写在格子里。' : '听到了吗？写在纸上，再看答案。'; }
+          if (Voice.ready()) { Voice.speak(it.say); say.textContent = canCheck ? '听到了吗？按笔顺写在格子里。' : '听到了吗？写在纸上，再看答案。'; }
           else { again.hidden = true; say.textContent = '这台设备播不出日语语音，看读音写：' + it.ro; }
         }
         function quizAt(bi) {
