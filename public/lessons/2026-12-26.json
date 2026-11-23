@@ -1,0 +1,99 @@
+{
+  "v": 1,
+  "date": "2026-12-26",
+  "day": 33,
+  "weekday": "周六",
+  "kind": "manga",
+  "title": "漫画日：拟声词本（二）",
+  "subtitle": "キラキラ、ドキドキ、ガーン：少女漫画和热血漫画里最常见的 8 个词",
+  "minutes": 30,
+  "intro": "漫画日！昨天学了加点的片假名，今天就能写出漫画里最有名的那些词了：眼睛里的星星 キラキラ，心跳 ドキドキ，受到打击的 ガーン，强敌登场的 ゴゴゴ。学完这 8 个，你再翻日本漫画，画面上的字能认出一大半。",
+  "steps": [
+    {"min": 3, "title": "抽假名热身", "detail": "到下面的「抽假名」玩 12 次：46 个基本片假名都在里面，シ、ツ、ソ、ン 跳出来的时候要特别小心。", "target": "drill"},
+    {"min": 7, "title": "读拟声词", "detail": "读一遍下面的 8 个词和 2 个句子，每个点喇叭听一听，一边读一边做出那个表情。", "target": "words"},
+    {"min": 13, "title": "画拟声词本", "detail": "从 8 个词里挑 4 个，在画板的四个格子里各画一个小场面（画在纸上也可以），再把那个词写成效果音字。可以一格画闪亮的眼睛，一格画受打击的脸。", "target": "sketch"},
+    {"min": 4, "title": "听写", "detail": "到「听写」做 6 个：听读音，不看字，把片假名写出来。", "target": "drill"},
+    {"min": 3, "title": "小测", "detail": "做 5 道小测。", "target": "quiz"}
+  ],
+  "notes": [
+    {
+      "title": "这些词在漫画的哪里",
+      "body": "キラキラ：少女漫画里角色的大眼睛、闪亮登场的背景。\nドキドキ：喜欢的人走过来了，或者马上要上台了。字常常画在胸口旁边。\nワクワク：明天要去游乐园，今晚睡不着。\nガーン：考试不及格、冰淇淋掉在地上。角色的脸会画上一排竖线。\nゴゴゴ：很厉害的对手站在面前，背景里一排大字压过来。\nピカピカ：新鞋子、擦得发亮的地板。\nフワフワ：云朵、棉花糖、小猫的毛。\nザーザー：下大雨。字可以从上到下竖着排，像雨线一样。"
+    }
+  ],
+  "drill": [
+    {"char": "ア", "romaji": "a"},
+    {"char": "イ", "romaji": "i"},
+    {"char": "ウ", "romaji": "u"},
+    {"char": "エ", "romaji": "e"},
+    {"char": "オ", "romaji": "o"},
+    {"char": "カ", "romaji": "ka"},
+    {"char": "キ", "romaji": "ki"},
+    {"char": "ク", "romaji": "ku"},
+    {"char": "ケ", "romaji": "ke"},
+    {"char": "コ", "romaji": "ko"},
+    {"char": "サ", "romaji": "sa"},
+    {"char": "シ", "romaji": "shi"},
+    {"char": "ス", "romaji": "su"},
+    {"char": "セ", "romaji": "se"},
+    {"char": "ソ", "romaji": "so"},
+    {"char": "タ", "romaji": "ta"},
+    {"char": "チ", "romaji": "chi"},
+    {"char": "ツ", "romaji": "tsu"},
+    {"char": "テ", "romaji": "te"},
+    {"char": "ト", "romaji": "to"},
+    {"char": "ナ", "romaji": "na"},
+    {"char": "ニ", "romaji": "ni"},
+    {"char": "ヌ", "romaji": "nu"},
+    {"char": "ネ", "romaji": "ne"},
+    {"char": "ノ", "romaji": "no"},
+    {"char": "ハ", "romaji": "ha"},
+    {"char": "ヒ", "romaji": "hi"},
+    {"char": "フ", "romaji": "fu"},
+    {"char": "ヘ", "romaji": "he"},
+    {"char": "ホ", "romaji": "ho"},
+    {"char": "マ", "romaji": "ma"},
+    {"char": "ミ", "romaji": "mi"},
+    {"char": "ム", "romaji": "mu"},
+    {"char": "メ", "romaji": "me"},
+    {"char": "モ", "romaji": "mo"},
+    {"char": "ヤ", "romaji": "ya"},
+    {"char": "ユ", "romaji": "yu"},
+    {"char": "ヨ", "romaji": "yo"},
+    {"char": "ラ", "romaji": "ra"},
+    {"char": "リ", "romaji": "ri"},
+    {"char": "ル", "romaji": "ru"},
+    {"char": "レ", "romaji": "re"},
+    {"char": "ロ", "romaji": "ro"},
+    {"char": "ワ", "romaji": "wa"},
+    {"char": "ヲ", "romaji": "o"},
+    {"char": "ン", "romaji": "n"}
+  ],
+  "words": [
+    {"jp": "キラキラ", "romaji": "kirakira", "zh": "闪闪发光", "note": "星星、宝石、角色的大眼睛。"},
+    {"jp": "ドキドキ", "romaji": "dokidoki", "zh": "心怦怦地跳", "note": "紧张、害怕、心动的时候。"},
+    {"jp": "ワクワク", "romaji": "wakuwaku", "zh": "又兴奋又期待", "note": "盼着好事快点来的心情。"},
+    {"jp": "ガーン", "romaji": "gaan", "zh": "当——（受到打击）", "note": "听到坏消息的那一瞬间。"},
+    {"jp": "ゴゴゴ", "romaji": "gogogo", "zh": "轰隆隆……", "note": "地面震动的声音，也用来画强敌登场的压迫感。"},
+    {"jp": "ピカピカ", "romaji": "pikapika", "zh": "亮闪闪；崭新", "note": "擦得发亮的东西、全新的东西。"},
+    {"jp": "フワフワ", "romaji": "fuwafuwa", "zh": "轻飘飘、软绵绵", "note": "又轻又软的东西。"},
+    {"jp": "ザーザー", "romaji": "zaazaa", "zh": "哗哗（下大雨）", "note": "雨下得很大的声音。"}
+  ],
+  "phrases": [
+    {"jp": "むね が ドキドキ する", "tts": "胸がドキドキする", "romaji": "mune ga dokidoki suru", "zh": "心怦怦直跳", "note": "むね（胸）是胸口，する 是「做」。拟声词后面加 する，就变成一个动作。"},
+    {"jp": "ほし が キラキラ", "tts": "星がキラキラ", "romaji": "hoshi ga kirakira", "zh": "星星一闪一闪", "note": "ほし（星）是星星。"}
+  ],
+  "sketch": {
+    "title": "拟声词本",
+    "prompt": "挑 4 个拟声词，一格画一个小场面，再把词写成大大的效果音字。",
+    "layout": "yonkoma"
+  },
+  "quiz": [
+    {"q": "点喇叭听一听，是哪个假名？（听不到声音就选读作 do 的那个）", "say": "ド", "options": ["ト", "ド", "ゴ", "ボ"], "answer": 1, "explain": "ド 读作 do，是 ト 加两点。"},
+    {"q": "角色的大眼睛闪闪发光，用哪个词？", "options": ["キラキラ", "ザーザー", "ゴゴゴ", "ガーン"], "answer": 0, "explain": "キラキラ 是闪闪发光。"},
+    {"q": "冰淇淋掉在地上了，角色的脸旁边会写什么？", "options": ["ガーン", "ワクワク", "ピカピカ", "フワフワ"], "answer": 0, "explain": "ガーン 是受到打击的那一下。"},
+    {"q": "「ドキドキ」说的是什么？", "options": ["心跳得很快", "下大雨", "很软", "很亮"], "answer": 0, "explain": "ドキドキ 是心怦怦地跳。"},
+    {"q": "明天要去游乐园，今晚的心情是哪个词？", "options": ["ワクワク", "ガーン", "ザーザー", "ゴゴゴ"], "answer": 0, "explain": "ワクワク 是又兴奋又期待。"}
+  ],
+  "parent": "请她表演三个词给你们猜：キラキラ（闪闪发光）、ドキドキ（心怦怦跳）、ガーン（受到打击）。再请她翻开一本家里的日本漫画，找一找画面上有没有今天学的词。"
+}
