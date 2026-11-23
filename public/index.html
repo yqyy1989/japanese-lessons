@@ -354,26 +354,36 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
   }
 
   /* ---------- voice: device Japanese voice first, Claude voice as backup ---------- */
-  /* ---------- recorded voices for single kana: each clip is a woman's voice, then a man's (audio/kana/LICENSE.txt) ---------- */
+  /* ---------- sound files ----------
+     audio/kana/: recorded voices for single kana, a woman then a man (see its LICENSE.txt).
+     audio/say/:  ready-made clips for words and sentences, listed by their exact text in index.json. */
   var Clips = (function () {
-    var BASE = 'audio/kana/', have = {}, count = 0, loaded = null, urls = {}, pending = {}, el = null, turn = 0, unlocked = false;
+    var KANA_DIR = 'audio/kana/', SAY_DIR = 'audio/say/', have = {}, say = {}, count = 0, loaded = null, urls = {}, pending = {}, el = null, turn = 0, unlocked = false;
     var SILENT = 'data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
-    function load() {
-      if (!loaded) loaded = fetch(BASE + 'index.json', { cache: 'no-cache' })
+    function list(dir) {
+      return fetch(dir + 'index.json', { cache: 'no-cache' })
         .then(function (r) { if (!r.ok) throw new Error('clips'); return r.json(); })
-        .then(function (j) { ((j && j.clips) || []).forEach(function (k) { if (!have[k]) { have[k] = 1; count++; } }); })
-        .catch(function () {});
+        .catch(function () { return null; });
+    }
+    function load() {
+      if (!loaded) loaded = Promise.all([list(KANA_DIR), list(SAY_DIR)]).then(function (res) {
+        ((res[0] && res[0].clips) || []).forEach(function (k) { if (!have[k]) { have[k] = 1; count++; } });
+        var m = (res[1] && res[1].clips) || {};
+        Object.keys(m).forEach(function (t) { if (typeof m[t] === 'string' && /^[\w.-]+$/.test(m[t])) { say[t] = m[t]; count++; } });
+      });
       return loaded;
     }
-    /* あ, ア, きゃ … map to the file named after their reading; を shares お, ぢ shares じ, づ shares ず */
+    /* あ, ア, きゃ … map to the file named after their reading; を shares お, ぢ shares じ, づ shares ず.
+       Anything else plays only if a clip was made for exactly that text. */
     function keyOf(text) {
-      var t = String(text || '').replace(/[。.\s]+$/, '');
+      var raw = String(text || '').trim(), t = raw.replace(/[。.\s]+$/, '');
       var it = typeof KANA !== 'undefined' && KANA.byKey[t];
-      return it && have[it.ro] ? it.ro : null;
+      if (it && have[it.ro]) return KANA_DIR + it.ro + '.mp3';
+      return Object.prototype.hasOwnProperty.call(say, raw) ? SAY_DIR + say[raw] : null;
     }
     function fetchClip(k) {
       if (urls[k]) return Promise.resolve(urls[k]);
-      if (!pending[k]) pending[k] = fetch(BASE + k + '.mp3')
+      if (!pending[k]) pending[k] = fetch(k)
         .then(function (r) { if (!r.ok) throw new Error('clip'); return r.blob(); })
         .then(function (b) { urls[k] = URL.createObjectURL(b); delete pending[k]; return urls[k]; })
         .catch(function (e) { delete pending[k]; throw e; });
@@ -1192,6 +1202,8 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
     /* random pick + dictation, built from today's kana (or the lesson's own drill list) */
     var drillPool = Array.isArray(lesson.drill) && lesson.drill.length ? lesson.drill : kana;
     Voice.prime(kana.concat(drillPool).map(function (k) { return k && (k.say || k.char); }));
+    Voice.prime((lesson.words || []).concat(lesson.phrases || []).map(function (w) { return w && (w.say || w.jp); })
+      .concat((lesson.quiz || []).map(function (q) { return q && q.say; })));
     if (drillPool.length) root.appendChild(drillPanel(drillPool, date));
 
     /* quiz */
