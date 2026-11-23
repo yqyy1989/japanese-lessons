@@ -7,3 +7,8 @@ The site icon (favicon.svg, favicon.ico, apple-touch-icon.png) uses the outline 
 from the same AnimCJK stroke data, under the same license.
 
 Stroke animation uses Hanzi Writer v3.7.3 (https://chanind.github.io/hanzi-writer), MIT License.
+
+Kana pronunciation clips in audio/kana/ are edited from recordings made for
+Tae Kim's Guide to Learning Japanese (https://guidetojapanese.org), used under its
+Creative Commons Attribution-NonCommercial-ShareAlike licence. Source, checks and
+changes are described in audio/kana/LICENSE.txt.

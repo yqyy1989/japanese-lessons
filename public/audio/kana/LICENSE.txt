@@ -1,0 +1,38 @@
+Kana pronunciation clips (a.mp3 ... zu.mp3)
+==========================================
+
+What they are
+  One clip per Japanese kana sound: 45 basic sounds, 23 voiced and half-voiced
+  sounds, 33 combination sounds (kya, sha, ...), 101 files. Hiragana and katakana
+  share a clip. を plays o.mp3, ぢ plays ji.mp3 and づ plays zu.mp3, because they
+  are pronounced the same as お, じ and ず.
+  Each clip has two people saying the sound once each: a woman, then a man.
+
+Where they come from
+  Recordings made for Tae Kim's Guide to Learning Japanese
+  https://guidetojapanese.org/learn/grammar/hiragana
+  The guide is released under a Creative Commons
+  Attribution-NonCommercial-ShareAlike licence (stated at
+  https://guidetojapanese.org/learn/?p=37).
+
+  The files were taken from the copies used by the DJT Kana quiz
+  (https://djtguide.neocities.org/kana/), as kept unchanged in
+  https://github.com/hechangjia/kana-study (assets/audio-djt).
+
+  What was checked: the 46 basic sounds are the same recordings, under the same
+  names, as the files credited to guidetojapanese.org in
+  https://github.com/coregameHD/Gojuuon. The voiced and combination sounds have
+  the same two voices, the same layout and the same encoding, and Tae Kim's page
+  offers sound for those tables too, so they are taken to be from the same set;
+  that part was not compared against the original site directly.
+
+Changes made here
+  Each original file is the woman's take, a long pause, then the man's take
+  (1.2 to 4.1 seconds). Here the two takes were cut out, set to the same
+  loudness, joined with a short pause, and saved as mono MP3. Nothing else was
+  altered: no change of speed or pitch, no noise removal.
+
+Licence of these edited clips
+  Same as the source: Creative Commons Attribution-NonCommercial-ShareAlike.
+  Credit Tae Kim's Guide to Learning Japanese, do not use them commercially,
+  and share any further changes under the same licence.

@@ -257,6 +257,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
 
 <footer class="foot">
   <p>笔顺数据来自 AnimCJK（Arphic Public License），笔顺动画使用 Hanzi Writer（MIT）。画板里的画只保存在这台设备上。</p>
+  <p>假名的读音是真人录音（先女声，后男声），来自 Tae Kim's Guide to Learning Japanese（guidetojapanese.org），按 CC BY-NC-SA 许可使用，只做了剪短和音量调整。</p>
 </footer>
 
 <script src="vendor/hanzi-writer.min.js"></script>
@@ -353,16 +354,74 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
   }
 
   /* ---------- voice: device Japanese voice first, Claude voice as backup ---------- */
+  /* ---------- recorded voices for single kana: each clip is a woman's voice, then a man's (audio/kana/LICENSE.txt) ---------- */
+  var Clips = (function () {
+    var BASE = 'audio/kana/', have = {}, count = 0, loaded = null, urls = {}, pending = {}, el = null, turn = 0, unlocked = false;
+    var SILENT = 'data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+    function load() {
+      if (!loaded) loaded = fetch(BASE + 'index.json', { cache: 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error('clips'); return r.json(); })
+        .then(function (j) { ((j && j.clips) || []).forEach(function (k) { if (!have[k]) { have[k] = 1; count++; } }); })
+        .catch(function () {});
+      return loaded;
+    }
+    /* あ, ア, きゃ … map to the file named after their reading; を shares お, ぢ shares じ, づ shares ず */
+    function keyOf(text) {
+      var t = String(text || '').replace(/[。.\s]+$/, '');
+      var it = typeof KANA !== 'undefined' && KANA.byKey[t];
+      return it && have[it.ro] ? it.ro : null;
+    }
+    function fetchClip(k) {
+      if (urls[k]) return Promise.resolve(urls[k]);
+      if (!pending[k]) pending[k] = fetch(BASE + k + '.mp3')
+        .then(function (r) { if (!r.ok) throw new Error('clip'); return r.blob(); })
+        .then(function (b) { urls[k] = URL.createObjectURL(b); delete pending[k]; return urls[k]; })
+        .catch(function (e) { delete pending[k]; throw e; });
+      return pending[k];
+    }
+    function player() { if (!el) { el = new Audio(); el.preload = 'auto'; } return el; }
+    function start(url, my, onFail) {
+      var a = player(), p;
+      try { a.pause(); a.src = url; p = a.play(); } catch (e) { if (onFail) onFail(); return; }
+      if (p && p.catch) p.catch(function () { if (my === turn && onFail) onFail(); });
+    }
+    function play(text, onFail) {
+      var k = keyOf(text); if (!k) return false;
+      var my = ++turn;
+      if (urls[k]) start(urls[k], my, onFail);   /* already downloaded, so it starts inside the tap */
+      else fetchClip(k).then(function (u) { if (my === turn) start(u, my, onFail); }, function () { if (my === turn && onFail) onFail(); });
+      return true;
+    }
+    function stop() { turn++; if (el) { try { el.pause(); } catch (e) {} } }
+    function prime(texts) { (texts || []).forEach(function (t) { var k = keyOf(t); if (k) fetchClip(k).catch(function () {}); }); }
+    /* phones only let a page start sound from a tap: one silent play on the first tap frees the automatic plays that follow */
+    function unlock() {
+      if (unlocked) return; unlocked = true;
+      var a = player(), my = turn;
+      try { a.src = SILENT; var p = a.play(); if (p && p.then) p.then(function () { if (my === turn) a.pause(); }, function () {}); } catch (e) {}
+    }
+    ['pointerdown', 'keydown', 'touchend'].forEach(function (ev) { document.addEventListener(ev, unlock, { capture: true, passive: true }); });
+    return { load: load, has: function (t) { return !!keyOf(t); }, any: function () { return count > 0; }, play: play, stop: stop, prime: prime };
+  })();
+
   var Voice = (function () {
     var synth = null; try { synth = window.speechSynthesis || null; } catch (e) {}
     var nativeVoice = null, claudeTts = null;
-    function available() { return !!(nativeVoice || claudeTts); }
+    function machine() { return !!(nativeVoice || claudeTts); }
+    function available() { return machine() || Clips.any(); }
     function notify() { document.documentElement.classList.toggle('has-voice', available()); }
     function pick() {
       if (!synth) return;
       try {
         var vs = (synth.getVoices() || []).filter(function (v) { return /^ja([-_]|$)/i.test(v.lang || ''); });
-        nativeVoice = vs.filter(function (v) { return v.localService; })[0] || vs[0] || null;
+        /* clearest first: the "natural"/"enhanced" voices, then Google's, then whatever else the device has */
+        var rank = function (v) {
+          var n = (v.name || '') + ' ' + (v.voiceURI || '');
+          if (/natural|neural|premium|enhanced|拡張|プレミアム/i.test(n)) return 0;
+          if (/google/i.test(n)) return 1;
+          return v.localService ? 2 : 3;
+        };
+        nativeVoice = vs.slice().sort(function (a, b) { return rank(a) - rank(b); })[0] || null;
       } catch (e) { nativeVoice = null; }
       notify();
     }
@@ -379,13 +438,19 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
         });
       } catch (e) {}
     }
-    function speak(text) {
-      if (!text) return;
+    var keep = [];   /* some browsers stop mid-word when the utterance object is garbage-collected, so hold on to the last few */
+    function tts(text) {
       if (nativeVoice && synth) {
         try {
-          synth.cancel();
+          /* cancelling and speaking in the same instant makes some browsers cut the new sentence short:
+             cancel only when something is still playing, and then start a moment later */
+          var busy = false;
+          try { busy = synth.speaking || synth.pending; } catch (e) {}
+          if (busy) synth.cancel();
+          try { if (synth.paused) synth.resume(); } catch (e) {}
           var u = new SpeechSynthesisUtterance(text);
-          u.voice = nativeVoice; u.lang = nativeVoice.lang || 'ja-JP'; u.rate = 0.8;
+          u.voice = nativeVoice; u.lang = nativeVoice.lang || 'ja-JP'; u.rate = 0.85;
+          keep.push(u); if (keep.length > 4) keep.shift();
           var started = false, settled = false;
           u.onstart = function () { started = true; };
           u.onend = function () { settled = true; };
@@ -395,7 +460,8 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
             settled = true;
             if (claudeTts) { nativeVoice = null; notify(); viaClaude(text); }
           };
-          synth.speak(u);
+          var go = function () { try { synth.speak(u); } catch (e) {} };
+          if (busy) setTimeout(go, 120); else go();
           setTimeout(function () {
             if (started || settled || !claudeTts) return;
             settled = true; try { synth.cancel(); } catch (e) {}
@@ -406,7 +472,16 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
       }
       viaClaude(text);
     }
-    return { speak: speak, ready: available };
+    function quiet() { try { if (synth && (synth.speaking || synth.pending)) synth.cancel(); } catch (e) {} }
+    /* a single kana plays its recording; words and sentences still use the device's Japanese voice */
+    function speak(text) {
+      if (!text) return;
+      if (Clips.play(text, function () { tts(text); })) { quiet(); return; }
+      Clips.stop(); tts(text);
+    }
+    function can(text) { return Clips.has(text) || machine(); }
+    function stop() { Clips.stop(); quiet(); }
+    return { speak: speak, stop: stop, ready: available, can: can, prime: Clips.prime, refresh: notify };
   })();
   function sayBtn(text, label) {
     var b = h('button', { 'class': 'btn sm say', type: 'button', 'aria-label': label || ('听 ' + text + ' 的发音'), on: { click: function () { Voice.speak(text); } } });
@@ -915,7 +990,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
       var cur = null, last = null, writer = null, done = true, right = 0, total = 0;
       function play() {
         if (!cur) return;
-        if (Voice.ready()) { Voice.speak(cur.say || cur.char); say.textContent = writer ? '听到了吗？在格子里按笔顺写出来。' : '听到了吗？写在纸上，再看答案。'; }
+        if (Voice.can(cur.say || cur.char)) { Voice.speak(cur.say || cur.char); say.textContent = writer ? '听到了吗？在格子里按笔顺写出来。' : '听到了吗？写在纸上，再看答案。'; }
         else say.textContent = '这台设备播不出日语语音，看读音写：' + (cur.romaji || '');
       }
       function finish(ok) {
@@ -1116,6 +1191,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
 
     /* random pick + dictation, built from today's kana (or the lesson's own drill list) */
     var drillPool = Array.isArray(lesson.drill) && lesson.drill.length ? lesson.drill : kana;
+    Voice.prime(kana.concat(drillPool).map(function (k) { return k && (k.say || k.char); }));
     if (drillPool.length) root.appendChild(drillPanel(drillPool, date));
 
     /* quiz */
@@ -1185,6 +1261,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
         (l.kana || []).forEach(function (k) { if (k && k.char && !seenK[k.char]) { seenK[k.char] = 1; kana.push(k); } });
         (l.words || []).concat(l.phrases || []).forEach(function (w) { if (w && w.jp && !seenW[w.jp]) { seenW[w.jp] = 1; words.push(w); } });
       });
+      Voice.prime(kana.map(function (k) { return k.say || k.char; }));
       holder.textContent = '';
       holder.appendChild(h('h1', { text: '复习' }));
       if (!kana.length && !words.length) { holder.appendChild(h('p', { 'class': 'muted', text: '学完第一课以后，学过的假名和单词会收在这里。' })); return; }
@@ -1341,8 +1418,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
     disposers.push(function () {
       live = false; scr++; onKey = null;
       document.removeEventListener('keydown', keydown);
-      timers.forEach(clearTimeout);
-      try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+      timers.forEach(clearTimeout); Voice.stop();
     });
     function picked() { return KANA.all.filter(function (it) { return sel[it.k]; }); }
     function persist() { st.sel = picked().map(function (it) { return it.k; }); TestState.save(); }
@@ -1366,7 +1442,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
       var id = ++scr; onKey = null;
       holder.textContent = '';
       holder.appendChild(h('h1', { text: '假名测试' }));
-      holder.appendChild(h('p', { 'class': 'sub', text: '选出要练的假名，开始以后随机出题：有时出一个假名，马上读出来；有时放一个读音，把听到的假名写出来。' }));
+      holder.appendChild(h('p', { 'class': 'sub', text: '选出要练的假名，开始以后随机出题：有时出一个假名，马上读出来；有时放一个读音，把听到的假名写出来。读音是真人录音，每次先女声、后男声各读一遍。' }));
 
       var painters = [], openers = {};
       var total = h('span', { 'class': 'pick-count' });
@@ -1493,6 +1569,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
       queue.forEach(function (q, j) { q.mode = mixed[j]; });
 
       var qi = -1, log = [];
+      Voice.prime(items.map(function (it) { return it.say; }));
       var prog = h('span', { 'class': 'clock' }), score = h('span', { 'class': 'clock' });
       var quit = h('button', { 'class': 'btn sm', type: 'button', text: '结束' });
       var stage = h('div', { 'class': 'stack' });
@@ -1514,7 +1591,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
         if (qi >= queue.length) { result(); return; }
         prog.textContent = '第 ' + (qi + 1) + ' / ' + queue.length + ' 题';
         score.textContent = '对 ' + log.filter(function (r) { return r.ok; }).length + ' / ' + log.length;
-        stage.textContent = ''; onKey = null;
+        stage.textContent = ''; onKey = null; Voice.stop();
         if (queue[qi].mode === 'read') askRead(queue[qi]); else askWrite(queue[qi]);
       }
 
@@ -1580,7 +1657,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
         function label() { return it.k + '（' + it.ro + '）'; }
         function mark(sym, text) { result.textContent = ''; result.appendChild(h('span', { 'class': 'mark', text: sym })); result.appendChild(document.createTextNode(text)); }
         function play() {
-          if (Voice.ready()) { Voice.speak(it.say); say.textContent = canCheck ? '听到了吗？按笔顺写在格子里。' : '听到了吗？写在纸上，再看答案。'; }
+          if (Voice.can(it.say)) { Voice.speak(it.say); say.textContent = canCheck ? '听到了吗？按笔顺写在格子里。' : '听到了吗？写在纸上，再看答案。'; }
           else { again.hidden = true; say.textContent = '这台设备播不出日语语音，看读音写：' + it.ro; }
         }
         function quizAt(bi) {
@@ -1638,8 +1715,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
 
       /* ----- screen 3: what went well, what to practise again ----- */
       function result() {
-        scr++; onKey = null;
-        try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+        scr++; onKey = null; Voice.stop();
         var right = log.filter(function (r) { return r.ok; }).length;
         var reads = log.filter(function (r) { return r.mode === 'read'; }), writes = log.filter(function (r) { return r.mode === 'write'; });
         function uniq(list) { var seen = {}, out = []; list.forEach(function (r) { if (!seen[r.it.k]) { seen[r.it.k] = 1; out.push(r.it); } }); return out; }
@@ -1722,7 +1798,9 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
   }
   window.addEventListener('hashchange', route);
 
-  loadManifest().then(route).catch(function () {
+  var clipsReady = Promise.race([Clips.load(), new Promise(function (ok) { setTimeout(ok, 2500); })]);
+  Clips.load().then(function () { Voice.refresh(); });
+  Promise.all([loadManifest(), clipsReady]).then(route).catch(function () {
     app.textContent = '';
     var retry = h('button', { 'class': 'btn', type: 'button', text: '重新加载' });
     retry.addEventListener('click', function () { loadManifest().then(route).catch(function () {}); });
