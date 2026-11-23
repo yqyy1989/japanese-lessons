@@ -315,6 +315,13 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
     var d = new Date();
     return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
   }
+  function dayOf(iso) {
+    try {
+      var d = new Date(iso); if (isNaN(d.getTime())) return '';
+      var o = {}; new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(d).forEach(function (p) { o[p.type] = p.value; });
+      return o.year + '-' + o.month + '-' + o.day;
+    } catch (e) { return ''; }
+  }
   function clock(sec) { sec = Math.max(0, Math.round(sec)); return pad2(Math.floor(sec / 60)) + ':' + pad2(sec % 60); }
   function chars(s) { return Array.from(String(s || '')); }
   function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
@@ -493,7 +500,10 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
   }
   function byDate() { var o = {}; Data.manifest.lessons.forEach(function (l) { o[l.date] = l; }); return o; }
   function shownLessons() { var t = todayStr(); return Data.manifest.lessons.filter(function (l) { return l.date <= t; }); }
-  function upcomingLessons() { var t = todayStr(); return Data.manifest.lessons.filter(function (l) { return l.date > t; }); }
+  /* lessons in course order: by lesson number, whatever the planned dates are */
+  function byNumber() {
+    return Data.manifest.lessons.slice().sort(function (a, b) { return ((a.day || 0) - (b.day || 0)) || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0); });
+  }
   /* what counts as learned: every lesson up to today, plus any later lesson she has already finished ahead of time */
   function learnedLessons() { var t = todayStr(); return Data.manifest.lessons.filter(function (l) { return l.date <= t || Store.get(l.date).done; }); }
 
@@ -540,10 +550,15 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
   function errorPanel(msg, href, label) {
     return h('section', { 'class': 'panel' }, h('h2', { text: msg }), href ? h('a', { 'class': 'btn', href: href, text: label }) : null);
   }
-  function lessonRow(l) {
+  function lessonRow(l, withDoneDate) {
     var p = Store.get(l.date);
     var end = h('span', { 'class': 'item-end' });
+    if (!p.done && l.date === todayStr()) end.appendChild(h('span', { 'class': 'chip kind-new', text: '今天' }));
     if (p.quiz && p.quiz.total) end.appendChild(h('span', { text: '小测 ' + p.quiz.score + '/' + p.quiz.total }));
+    if (p.done && withDoneDate && p.doneAt) {
+      var dd = dayOf(p.doneAt);
+      if (dd && dd !== l.date) end.appendChild(h('span', { 'class': 'muted small', text: niceDate(dd) + '完成' }));
+    }
     if (p.done) end.appendChild(hanamaru(30));
     return h('a', { 'class': 'item', href: '#d-' + l.date },
       h('span', { 'class': 'item-day', text: '第' + (l.day || '?') + '天' }),
@@ -589,6 +604,18 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
       if (latest) wrap.appendChild(hero(latest, false));
     }
 
+    var onTop = cur || latest, todoPanel = null;
+    var todo = byNumber().filter(function (l3) { return !Store.get(l3.date).done && !(onTop && l3.date === onTop.date); });
+    if (todo.length) {
+      var upList = h('div', { 'class': 'list' });
+      todo.slice(0, 3).forEach(function (l3) { upList.appendChild(lessonRow(l3)); });
+      todoPanel = h('section', { 'class': 'panel' },
+        h('div', { 'class': 'row spread' }, h('span', { 'class': 'tab hi', text: '还没学的课' }),
+          h('a', { 'class': 'btn sm', href: '#all', text: todo.length > 3 ? '还有 ' + (todo.length - 3) + ' 课，看全部' : '全部课程' })),
+        h('p', { 'class': 'muted small', text: '按课程编号往下学，不用等到日期，一天学两课也可以。学完点“完成”，这一课就算学完了。' }),
+        upList);
+    }
+
     if (ls.length) {
       var strip = h('div', { 'class': 'strip', role: 'list' });
       for (var i = 13; i >= 0; i--) {
@@ -604,6 +631,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
           h('div', { 'class': 'row' }, h('span', { 'class': 'big-num', text: String(streak(today, map)) }), h('span', { text: '天连续完成' }))),
         strip,
         h('p', { 'class': 'muted small', text: '红色是已经完成的日子，点一下可以回到那一天。' })));
+      if (todoPanel) wrap.appendChild(todoPanel);
 
       var list = h('div', { 'class': 'list' });
       ls.slice(-6).reverse().forEach(function (l2) { list.appendChild(lessonRow(l2)); });
@@ -615,41 +643,33 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
         h('p', { text: '学过的假名和单词都收在复习页里，可以点读，也可以打乱抽查。' }),
         h('div', { 'class': 'row' }, h('a', { 'class': 'btn hi', href: '#review', text: '去复习' }))));
     }
-    var up = upcomingLessons();
-    if (up.length) {
-      var upList = h('div', { 'class': 'list' });
-      up.slice(0, 3).forEach(function (l3) { upList.appendChild(lessonRow(l3)); });
-      wrap.appendChild(h('section', { 'class': 'panel' },
-        h('div', { 'class': 'row spread' }, h('span', { 'class': 'tab', text: '已经备好的课' }),
-          up.length > 3 ? h('a', { 'class': 'btn sm', href: '#all', text: '备好的 ' + up.length + ' 课都在这里' }) : null),
-        h('p', { 'class': 'muted small', text: '有时间的话可以提前学。学完点“完成”，复习和测试里就会加上这一课的假名。' }),
-        upList));
-    }
+    if (!ls.length && todoPanel) wrap.appendChild(todoPanel);
     app.appendChild(wrap);
   }
 
   /* ---------- all lessons ---------- */
   function viewAll() {
-    var ls = shownLessons().reverse(), up = upcomingLessons();
+    var all = byNumber();
+    var todo = all.filter(function (l) { return !Store.get(l.date).done; }), done = all.filter(function (l) { return Store.get(l.date).done; });
     var wrap = h('div', { 'class': 'stack' }, h('h1', { text: '全部课程' }));
-    if (!ls.length && !up.length) wrap.appendChild(h('p', { 'class': 'muted', text: '还没有课程。第一课放上来以后会出现在这里。' }));
-    if (up.length) {
-      var upList = h('div', { 'class': 'list' });
-      up.forEach(function (l) { upList.appendChild(lessonRow(l)); });
-      wrap.appendChild(h('section', { 'class': 'panel' },
-        h('span', { 'class': 'tab hi', text: '接下来的课 · 已经备好 ' + up.length + ' 课' }),
-        h('p', { 'class': 'muted small', text: '还没到日子，有时间可以提前学，一天学两课也可以。学完点“完成”，复习和测试里就会加上这一课的假名。' }),
-        upList));
+    if (!all.length) wrap.appendChild(h('p', { 'class': 'muted', text: '还没有课程。第一课放上来以后会出现在这里。' }));
+    function listOf(ls, withDoneDate) { var list = h('div', { 'class': 'list' }); ls.forEach(function (l) { list.appendChild(lessonRow(l, withDoneDate)); }); return list; }
+    if (todo.length) {
+      wrap.appendChild(h('section', { 'class': 'panel pop' },
+        h('span', { 'class': 'tab hi', text: '未完成 · ' + todo.length + ' 课' }),
+        h('p', { 'class': 'muted small', text: '按课程编号排，从最上面的开始学。后面的日期是原来计划的日子，不用等到那天，一天学两课也可以。学完点“完成”，这一课就会移到“已完成”。' }),
+        listOf(todo, false)));
+    } else if (all.length) {
+      wrap.appendChild(h('section', { 'class': 'panel pop' },
+        h('span', { 'class': 'tab hi', text: '未完成 · 0 课' }),
+        h('div', { 'class': 'stamp-wrap' }, hanamaru(56), ja('ぜんぶ できました！')),
+        h('p', { text: '备好的课都学完了。想接着往下学，请家长告诉老师，把后面的课提前备出来。' })));
     }
-    var month = '', list = null;
-    ls.forEach(function (l) {
-      var p = dparts(l.date), key = p.y + '年' + p.m + '月';
-      if (key !== month) {
-        month = key; list = h('div', { 'class': 'list' });
-        wrap.appendChild(h('section', { 'class': 'panel' }, h('span', { 'class': 'tab', text: key }), list));
-      }
-      list.appendChild(lessonRow(l));
-    });
+    if (done.length) {
+      wrap.appendChild(h('section', { 'class': 'panel' },
+        h('span', { 'class': 'tab', text: '已完成 · ' + done.length + ' 课' }),
+        listOf(done, true)));
+    }
     app.appendChild(wrap);
   }
 
