@@ -494,6 +494,8 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
   function byDate() { var o = {}; Data.manifest.lessons.forEach(function (l) { o[l.date] = l; }); return o; }
   function shownLessons() { var t = todayStr(); return Data.manifest.lessons.filter(function (l) { return l.date <= t; }); }
   function upcomingLessons() { var t = todayStr(); return Data.manifest.lessons.filter(function (l) { return l.date > t; }); }
+  /* what counts as learned: every lesson up to today, plus any later lesson she has already finished ahead of time */
+  function learnedLessons() { var t = todayStr(); return Data.manifest.lessons.filter(function (l) { return l.date <= t || Store.get(l.date).done; }); }
 
   /* ---------- step timer ---------- */
   var Timer = (function () {
@@ -530,7 +532,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
   function lessonMeta(l, withToday) {
     var today = todayStr();
     return h('div', { 'class': 'meta' },
-      h('span', { 'class': 'tab', text: (l.date > today ? '预告 · ' : (withToday && l.date === today ? '今天 · ' : '')) + '第 ' + (l.day || '?') + ' 天' }),
+      h('span', { 'class': 'tab', text: (l.date > today ? (Store.get(l.date).done ? '提前学完 · ' : '可以提前学 · ') : (withToday && l.date === today ? '今天 · ' : '')) + '第 ' + (l.day || '?') + ' 天' }),
       h('span', { text: niceDate(l.date) + ' ' + (l.weekday || weekday(l.date)) }),
       kindChip(l.kind),
       l.minutes ? h('span', { text: l.minutes + ' 分钟' }) : null);
@@ -583,7 +585,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
       wrap.appendChild(h('section', { 'class': 'panel' },
         h('span', { 'class': 'tab', text: niceDate(today) + ' ' + weekday(today) }),
         h('h2', { text: weekday(today) === '周日' ? '今天休息' : (ls.length ? '今天的任务还在路上' : '第一课正在准备') }),
-        h('p', { 'class': 'muted', text: weekday(today) === '周日' ? '周日是休息日，没有新任务。想翻一翻的话，可以去复习页。' : '周一到周六每天下午 3 点前，老师会把当天的任务放到这里。到时候刷新一下就能看到。' })));
+        h('p', { 'class': 'muted', text: weekday(today) === '周日' ? '周日是休息日，没有新任务。想翻一翻的话，可以去复习页。' : '老师一般在前一天晚上把任务放到这里。刷新一下看看；还没有的话，可以先去复习。' })));
       if (latest) wrap.appendChild(hero(latest, false));
     }
 
@@ -606,7 +608,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
       var list = h('div', { 'class': 'list' });
       ls.slice(-6).reverse().forEach(function (l2) { list.appendChild(lessonRow(l2)); });
       wrap.appendChild(h('section', { 'class': 'panel' },
-        h('div', { 'class': 'row spread' }, h('span', { 'class': 'tab', text: '最近的课' }), h('a', { 'class': 'btn sm', href: '#all', text: '全部 ' + ls.length + ' 课' })),
+        h('div', { 'class': 'row spread' }, h('span', { 'class': 'tab', text: '最近的课' }), h('a', { 'class': 'btn sm', href: '#all', text: '全部 ' + Data.manifest.lessons.length + ' 课' })),
         list));
       wrap.appendChild(h('section', { 'class': 'panel' },
         h('span', { 'class': 'tab hi', text: '复习' }),
@@ -618,8 +620,9 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
       var upList = h('div', { 'class': 'list' });
       up.slice(0, 3).forEach(function (l3) { upList.appendChild(lessonRow(l3)); });
       wrap.appendChild(h('section', { 'class': 'panel' },
-        h('span', { 'class': 'tab', text: '已经备好的课' }),
-        h('p', { 'class': 'muted small', text: '家长可以先看一眼，到了那天再做。' }),
+        h('div', { 'class': 'row spread' }, h('span', { 'class': 'tab', text: '已经备好的课' }),
+          up.length > 3 ? h('a', { 'class': 'btn sm', href: '#all', text: '备好的 ' + up.length + ' 课都在这里' }) : null),
+        h('p', { 'class': 'muted small', text: '有时间的话可以提前学。学完点“完成”，复习和测试里就会加上这一课的假名。' }),
         upList));
     }
     app.appendChild(wrap);
@@ -627,9 +630,17 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
 
   /* ---------- all lessons ---------- */
   function viewAll() {
-    var ls = shownLessons().reverse();
+    var ls = shownLessons().reverse(), up = upcomingLessons();
     var wrap = h('div', { 'class': 'stack' }, h('h1', { text: '全部课程' }));
-    if (!ls.length) wrap.appendChild(h('p', { 'class': 'muted', text: '还没有课程。第一课放上来以后会出现在这里。' }));
+    if (!ls.length && !up.length) wrap.appendChild(h('p', { 'class': 'muted', text: '还没有课程。第一课放上来以后会出现在这里。' }));
+    if (up.length) {
+      var upList = h('div', { 'class': 'list' });
+      up.forEach(function (l) { upList.appendChild(lessonRow(l)); });
+      wrap.appendChild(h('section', { 'class': 'panel' },
+        h('span', { 'class': 'tab hi', text: '接下来的课 · 已经备好 ' + up.length + ' 课' }),
+        h('p', { 'class': 'muted small', text: '还没到日子，有时间可以提前学，一天学两课也可以。学完点“完成”，复习和测试里就会加上这一课的假名。' }),
+        upList));
+    }
     var month = '', list = null;
     ls.forEach(function (l) {
       var p = dparts(l.date), key = p.y + '年' + p.m + '月';
@@ -1101,12 +1112,12 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
       if (p.done) {
         headStamp.appendChild(hanamaru(64));
         doneSec.appendChild(h('div', { 'class': 'done-row' }, hanamaru(96, fresh),
-          h('div', {}, ja('よくできました！', 'yoku', 'p'), h('p', { text: '做得很好，今天的任务完成了。' }))));
+          h('div', {}, ja('よくできました！', 'yoku', 'p'), h('p', { text: date === todayStr() ? '做得很好，今天的任务完成了。' : '做得很好，这一课完成了。' }))));
         var undoB = h('button', { 'class': 'btn sm', type: 'button', text: '还没做完，取消完成' });
         undoB.addEventListener('click', function () { Store.patch(date, { done: false }, true); paintDone(false); });
         doneSec.appendChild(h('div', { 'class': 'row' }, undoB));
       } else {
-        var b = h('button', { 'class': 'btn primary', type: 'button', text: '今天的任务完成了' });
+        var b = h('button', { 'class': 'btn primary', type: 'button', text: date === todayStr() ? '今天的任务完成了' : '这一课完成了' });
         b.addEventListener('click', function () { Store.patch(date, { done: true, doneAt: new Date().toISOString() }, true); paintDone(true); });
         doneSec.appendChild(h('h2', { text: '都做完了吗？' }));
         doneSec.appendChild(h('div', { 'class': 'row' }, b));
@@ -1118,7 +1129,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
     /* pager */
     var ls = Data.manifest.lessons, idx = -1;
     ls.forEach(function (l, i) { if (l.date === date) idx = i; });
-    var prev = idx > 0 ? ls[idx - 1] : null, next = idx >= 0 && idx < ls.length - 1 && ls[idx + 1].date <= todayStr() ? ls[idx + 1] : null;
+    var prev = idx > 0 ? ls[idx - 1] : null, next = idx >= 0 && idx < ls.length - 1 ? ls[idx + 1] : null;
     root.appendChild(h('nav', { 'class': 'pager', 'aria-label': '前后课程' },
       prev ? h('a', { 'class': 'btn sm', href: '#d-' + prev.date, text: '← 第 ' + (prev.day || '?') + ' 天' }) : h('span', {}),
       h('a', { 'class': 'btn sm', href: '#all', text: '全部课程' }),
@@ -1145,7 +1156,7 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
     var holder = h('div', { 'class': 'stack' }, h('h1', { text: '复习' }), h('p', { 'class': 'muted', text: '正在整理学过的内容…' }));
     app.appendChild(holder);
     var today = todayStr();
-    var ls = Data.manifest.lessons.filter(function (l) { return l.date <= today; });
+    var ls = learnedLessons();
     Promise.all(ls.map(function (l) { return loadLesson(l.date).catch(function () { return null; }); })).then(function (all) {
       if (currentRoute() !== 'review') return;
       var kana = [], seenK = {}, words = [], seenW = {};
@@ -1431,9 +1442,8 @@ main{max-width:860px;margin:0 auto;padding:24px 16px 96px}
       });
       paint();
 
-      /* "learned so far" comes from the lessons up to today; on the very first visit it is preselected */
-      var today = todayStr();
-      var ls = (Data.manifest ? Data.manifest.lessons : []).filter(function (l) { return l.date <= today; });
+      /* "learned so far" comes from the lessons up to today plus any finished ahead; on the very first visit it is preselected */
+      var ls = Data.manifest ? learnedLessons() : [];
       Promise.all(ls.map(function (l) { return loadLesson(l.date).catch(function () { return null; }); })).then(function (all) {
         if (!live || scr !== id) return;
         var seen = {};
