@@ -1,0 +1,24 @@
+Spoken clips for words and sentences
+====================================
+
+These clips are synthetic speech, not recordings of a person.
+
+  Engine  VOICEVOX (voicevox_core 0.17.1)   https://voicevox.hiroshiba.jp/
+  Voice   四国めたん (ノーマル)
+  Credit  VOICEVOX:四国めたん
+
+Terms (from TERMS.txt shipped with the VOICEVOX voice models, version 0.17.1)
+  - Speech made with the 四国めたん voice may be used commercially and
+    non-commercially as long as the credit "VOICEVOX:四国めたん" is shown.
+    The site shows it in the page footer.
+  - The voice has its own detailed terms at https://zunko.jp/con_ongen_kiyaku.html
+  - Not allowed: reverse engineering the models, acts that harm the makers or
+    third parties, and use against public order and morals.
+  - Anyone who reuses these clips has to follow the same terms.
+
+How they are made
+  tools/say-audio/build.py reads the lessons, synthesises each word and sentence,
+  checks that the engine's reading matches the lesson's kana, trims and levels the
+  result and saves it here. index.json maps each text to its file.
+
+The site owner agreed to this voice and credit on 2026-11-23.
