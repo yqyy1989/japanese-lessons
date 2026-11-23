@@ -160,6 +160,22 @@ def reading(query):
     return ''.join(m.text for p in query.accent_phrases for m in p.moras)
 
 
+def expected(key):
+    """The lesson's kana as it is spoken: the particles は and へ standing on their own are read wa and e,
+    and so is the は at the end of こんにちは / こんばんは."""
+    out = []
+    for word in key.split():
+        bare = re.sub(r'[^ぁ-ゖァ-ヺー]', '', word)
+        if bare == 'は':
+            word = 'わ'
+        elif bare == 'へ':
+            word = 'え'
+        elif bare in ('こんにちは', 'こんばんは'):
+            word = bare[:-1] + 'わ'
+        out.append(word)
+    return norm(''.join(out))
+
+
 # ---------- audio clean-up, plain python ----------
 def tidy(wav_bytes):
     """Cut the silence at both ends, bring every clip to the same loudness, add a short lead-in and tail."""
@@ -227,15 +243,16 @@ def main():
     made, failed = [], []
     for key in todo:
         try:
-            given = wanted[key]
+            plain = key.replace(' ', '')          # the lessons put spaces between words; real Japanese has none
+            given = wanted[key] if wanted[key] != key else plain
             q = syn.create_audio_query(given, STYLE_ID)
             note = ''
-            if norm(reading(q)) != norm(key):
-                if given != key:
+            if norm(reading(q)) != expected(key):
+                if given != plain:
                     note = '  ("%s" was read as %s, so the kana was used instead)' % (given, reading(q))
-                    given = key
-                    q = syn.create_audio_query(key, STYLE_ID)
-                if norm(reading(q)) != norm(key):
+                    given = plain
+                    q = syn.create_audio_query(plain, STYLE_ID)
+                if norm(reading(q)) != expected(key):
                     raise ValueError('the engine reads it as %s' % reading(q))
             q.speed_scale = SPEED
             sr, pcm, secs = tidy(syn.synthesis(q, STYLE_ID))
@@ -243,7 +260,7 @@ def main():
             to_mp3(sr, pcm, os.path.join(OUT, name))
             clips[key] = name
             made.append(key)
-            print('  made  %-18s %-12s %.1fs  accent: %s%s' % (key, '' if given == key else '<- ' + given, secs, q.kana, note))
+            print('  made  %-18s %-12s %.1fs  accent: %s%s' % (key, '' if given == plain else '<- ' + given, secs, q.kana, note))
         except Exception as e:                       # one bad text must not stop the rest
             failed.append(key)
             print('  FAILED %s: %s' % (key, e))
