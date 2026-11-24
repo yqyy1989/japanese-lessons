@@ -8,6 +8,12 @@ from the same AnimCJK stroke data, under the same license.
 
 Stroke animation uses Hanzi Writer v3.7.3 (https://chanind.github.io/hanzi-writer), MIT License.
 
+The handwriting check (recog.js) also uses data/kana-shapes.json: stroke shapes of the 92 plain
+kana adapted (resampled and rounded) from KanjiVG (https://kanjivg.tagaini.net/), copyright
+Ulrich Apel, released under the Creative Commons Attribution-Share Alike 3.0 licence
+(https://creativecommons.org/licenses/by-sa/3.0/). kana-shapes.json is offered under the same
+licence. It is made by tools/kana-shapes/build.py.
+
 Kana pronunciation clips in audio/kana/ are edited from recordings made for
 Tae Kim's Guide to Learning Japanese (https://guidetojapanese.org), used under its
 Creative Commons Attribution-NonCommercial-ShareAlike licence. Source, checks and
